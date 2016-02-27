@@ -1,0 +1,6 @@
+name "enigma"
+description "A library for simulating the Enigma machines."
+copyright "Copyright (C) 2016, Kazuya Takahashi"
+authors "Kazuya Takahashi"
+license "BSL-1.0"
+targetType "library"
