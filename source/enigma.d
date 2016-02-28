@@ -297,8 +297,8 @@ body
 /// Currently only I-, M3- or M4-like machines are available.
 struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
 {
-    private immutable Plugboard plugboard;
-    private immutable EntryWheel entryWheel;
+    import boolean_matrix : BSM;
+    private immutable BSM!N composedInputPerm;
     private immutable Rotor[rotorN] rotors;
     private immutable Reflector reflector;
     private size_t[rotorN] rotationStates;
@@ -306,8 +306,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
     import meta_workaround : Repeat;
 
     ///
-    this(in Plugboard plugboard, in EntryWheel entryWheel,
-        in Repeat!(rotorN, Rotor) rotors,
+    this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
         in Reflector reflector, in dchar[rotorN] rotorStartPos)
     in
     {
@@ -327,10 +326,18 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
             e = rotorStartPos[i].toUpper - 'A';
         }
 
-        this.plugboard = cast(immutable) plugboard;
-        this.entryWheel = cast(immutable) entryWheel;
+        this.composedInputPerm = cast(immutable) entryWheel.perm;
         this.rotors[] = cast(immutable)[rotors][];
         this.reflector = cast(immutable) reflector;
+    }
+
+    ///
+    this(in Plugboard plugboard, in EntryWheel entryWheel,
+        in Repeat!(rotorN, Rotor) rotors,
+        in Reflector reflector, in dchar[rotorN] rotorStartPos)
+    {
+        this(entryWheel, rotors, reflector, rotorStartPos);
+        this.composedInputPerm = cast(immutable) (entryWheel * plugboard);
     }
 
     private void step()
@@ -385,8 +392,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
 
         import boolean_matrix : transpose, BCV;
 
-        immutable inputPerm = entryWheel * plugboard;
-        immutable fwdPerm = composeForwardPermutation(inputPerm, 0);
+        immutable fwdPerm = composeForwardPermutation(composedInputPerm, 0);
         // bwdPerm = fwdPerm^-1 = fwdPerm^T
         immutable wholePerm = fwdPerm.transpose * reflector * fwdPerm;
         BCV!N v;
@@ -564,8 +570,8 @@ unittest
 unittest
 {
     // These have the same settings.
-    auto encipherer = Enigma!2(plugboardDoNothing, entryWheelDoNothing, rotorVI, rotorVII, reflectorC, "PY");
-    auto decipherer = Enigma!2(plugboardDoNothing, entryWheelDoNothing, rotorVI, rotorVII, reflectorC, "PY");
+    auto encipherer = Enigma!2(entryWheelDoNothing, rotorVI, rotorVII, reflectorC, "PY");
+    auto decipherer = Enigma!2(entryWheelDoNothing, rotorVI, rotorVII, reflectorC, "PY");
 
     foreach (dchar c; "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     {
@@ -580,14 +586,14 @@ unittest
 unittest
 {
     // These have the equivalent settings.
-    auto m3 = EnigmaM3(plugboardDoNothing, entryWheelDoNothing, rotorIII, rotorII, rotorI, reflectorB /*!*/ ,
+    auto m3 = EnigmaM3(entryWheelDoNothing, rotorIII, rotorII, rotorI, reflectorB /*!*/ ,
         "FOO");
-    auto m4 = EnigmaM4(plugboardDoNothing, entryWheelDoNothing, rotorIII, rotorII, rotorI,
+    auto m4 = EnigmaM4(entryWheelDoNothing, rotorIII, rotorII, rotorI,
         rotorBeta('A') /*!*/ , reflectorBThin /*!*/ , "FOOA" /*!*/ ); // FOO*A*
 
     // If each machine has just one movable rotor...
-    auto e1 = Enigma!1(plugboardDoNothing, entryWheelDoNothing, rotorI, reflectorC /*!*/ , "X");
-    auto e2fixed = Enigma!(2, true  /*!*/ )(plugboardDoNothing, entryWheelDoNothing, rotorI,
+    auto e1 = Enigma!1(entryWheelDoNothing, rotorI, reflectorC /*!*/ , "X");
+    auto e2fixed = Enigma!(2, true  /*!*/ )(entryWheelDoNothing, rotorI,
         rotorGamma('A') /*!*/ , reflectorCThin /*!*/ , "XA" /*!*/ ); // X*A*
 
     foreach (dchar c; "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
