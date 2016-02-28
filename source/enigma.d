@@ -89,9 +89,9 @@ in
 }
 body
 {
+    import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import std.algorithm : map;
     import boolean_matrix : permutation;
 
     return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
@@ -114,9 +114,9 @@ in
 }
 body
 {
+    import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import std.algorithm : map;
     import boolean_matrix : permutation;
 
     return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
@@ -141,9 +141,9 @@ in
 }
 body
 {
+    import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import std.algorithm : map;
     import boolean_matrix : permutation;
 
     return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
@@ -172,9 +172,9 @@ auto plugboard(S)(in S substitution) pure if (isSomeStringOrDcharRange!S)
 in
 {
     import std.algorithm.comparison : isPermutation;
-    import std.range : iota, walkLength;
-    import std.algorithm : map;
+    import std.algorithm.iteration : map;
     import std.ascii : toUpper;
+    import std.range : iota, walkLength;
 
     assert(substitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
@@ -187,8 +187,8 @@ out (r)
 }
 body
 {
+    import std.algorithm.iteration : map;
     import std.array : array;
-    import std.algorithm : map;
     import std.ascii : toUpper;
     import boolean_matrix : permutation;
 
@@ -217,9 +217,9 @@ auto reflector(S)(in S substitution) pure if (isSomeStringOrDcharRange!S)
 in
 {
     import std.algorithm.comparison : isPermutation;
-    import std.range : iota, walkLength;
-    import std.algorithm : map;
+    import std.algorithm.iteration : map;
     import std.ascii : toUpper;
+    import std.range : iota, walkLength;
 
     assert(substitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
@@ -232,8 +232,8 @@ out (r)
 }
 body
 {
+    import std.algorithm.iteration : map;
     import std.array : array;
-    import std.algorithm : map;
     import std.ascii : toUpper;
     import boolean_matrix : permutation;
 
@@ -335,7 +335,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
         BCV!N v;
         v[keyInputID] = true;
         auto w = wholePerm * v;
-        import std.algorithm;
+        import std.algorithm.searching : countUntil;
 
         auto r = w[].countUntil(true);
         assert(r >= 0);
@@ -528,9 +528,9 @@ unittest
 /// Encipher with the M4 and decipher with the equivalent M3.
 unittest
 {
-    import std.array : appender;
     import std.algorithm.comparison : equal;
     import std.algorithm.iteration : each, map;
+    import std.array : appender;
 
     // These have the equivalent settings.
     auto m4 = EnigmaM4(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), rotorIII('Y'),
