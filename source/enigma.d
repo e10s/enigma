@@ -166,6 +166,45 @@ body
 }
 
 ///
+struct EntryWheel
+{
+    import boolean_matrix : BSM;
+
+    immutable BSM!N perm;
+    ///
+    this()(in auto ref BSM!N perm) pure
+    {
+        this.perm = cast(immutable) perm;
+    }
+
+    alias perm this;
+}
+
+/++
+ + A convenience function to make an entry wheel from a substitution.
+ +/
+auto entryWheel(S)(in S backwardSubstitution) pure if (isSomeStringOrDcharRange!S)
+in
+{
+    import std.algorithm.comparison : isPermutation;
+    import std.algorithm.iteration : map;
+    import std.ascii : toUpper;
+    import std.range : iota, walkLength;
+
+    assert(backwardSubstitution.walkLength == N, "Bad length.");
+    assert(N.iota.isPermutation(backwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+}
+body
+{
+    import std.algorithm.iteration : map;
+    import std.array : array;
+    import std.ascii : toUpper;
+    import boolean_matrix : permutation, transpose;
+
+    return EntryWheel(backwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N.transpose);
+}
+
+///
 struct Plugboard
 {
     import boolean_matrix : BSM;
@@ -259,6 +298,7 @@ body
 struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
 {
     private immutable Plugboard plugboard;
+    private immutable EntryWheel entryWheel;
     private immutable Rotor[rotorN] rotors;
     private immutable Reflector reflector;
     private size_t[rotorN] rotationStates;
@@ -266,7 +306,8 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
     import meta_workaround : Repeat;
 
     ///
-    this(in Plugboard plugboard, in Repeat!(rotorN, Rotor) rotors,
+    this(in Plugboard plugboard, in EntryWheel entryWheel,
+        in Repeat!(rotorN, Rotor) rotors,
         in Reflector reflector, in dchar[rotorN] rotorStartPos)
     in
     {
@@ -287,6 +328,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
         }
 
         this.plugboard = cast(immutable) plugboard;
+        this.entryWheel = cast(immutable) entryWheel;
         this.rotors[] = cast(immutable)[rotors][];
         this.reflector = cast(immutable) reflector;
     }
@@ -331,9 +373,8 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
         import boolean_matrix : lowerRotator, upperRotator, Identity;
 
         ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
-        BSM!N relRotator = x > 0 ? lowerRotator!N(x) : upperRotator!N(-x);
-
-        auto composedPerm = rotors[rotorID].perm * relRotator * prevPerm;
+        immutable relRotator = x > 0 ? lowerRotator!N(x) : upperRotator!N(-x);
+        immutable composedPerm = rotors[rotorID].perm * relRotator * prevPerm;
         return rotorID == rotorN - 1 ? upperRotator!N(rotationStates[rotorID]) * composedPerm
             : composeForwardPermutation(composedPerm, rotorID + 1);
     }
@@ -344,15 +385,16 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
 
         import boolean_matrix : transpose, BCV;
 
-        auto fwdPerm = composeForwardPermutation(plugboard, 0);
+        immutable inputPerm = entryWheel * plugboard;
+        immutable fwdPerm = composeForwardPermutation(inputPerm, 0);
         // bwdPerm = fwdPerm^-1 = fwdPerm^T
-        auto wholePerm = fwdPerm.transpose * reflector * fwdPerm;
+        immutable wholePerm = fwdPerm.transpose * reflector * fwdPerm;
         BCV!N v;
         v[keyInputID] = true;
-        auto w = wholePerm * v;
+        immutable w = wholePerm * v;
         import std.algorithm.searching : countUntil;
 
-        auto r = w[].countUntil(true);
+        immutable r = w[].countUntil(true);
         assert(r >= 0);
         return r;
 
@@ -436,6 +478,12 @@ auto rotorGamma(dchar ringSetting = 'A') pure
     return rotor("FSOKANUERHMBTIYCWLQPZXVGJD", ringSetting);
 }
 
+/// Predefined the simplest entry wheel which does not substitute.
+auto entryWheelDoNothing() pure
+{
+    return entryWheel("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+}
+
 /// Predefined the simplest plugboard which does not substitute.
 auto plugboardDoNothing() pure
 {
@@ -469,7 +517,7 @@ auto reflectorCThin() pure
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
 unittest
 {
-    auto m3 = EnigmaM3(plugboardDoNothing, rotorI, rotorII, rotorIII, reflectorB, "oda");
+    auto m3 = EnigmaM3(plugboardDoNothing, entryWheelDoNothing, rotorI, rotorII, rotorIII, reflectorB, "oda");
 
     assert(m3.rotationStates == [14, 3, 0]);
     m3('A');
@@ -490,12 +538,13 @@ unittest
 unittest
 {
     immutable pbCI = plugboard("ABIDEFGHCJKLMNOPQRSTUVWXYZ"); // C <-> I
+    immutable enWh = entryWheel("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     immutable refB = reflector("YRUHQSLDPXNGOKMIEBFZCWVJAT");
     immutable rot1 = rotor("EKMFLGDQVZNTOWYHXUSPAIBRCJ", 'Q', 'A');
     immutable rot2 = rotor("AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E', 'B');
     immutable rot3 = rotor("BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V', 'A');
 
-    auto e3 = Enigma!3(pbCI, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
+    auto e3 = Enigma!3(pbCI, enWh, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
     assert(e3('A') == 'K');
     assert(e3('a') == 'T'); // A lowercase is automatically converted to an uppercase.
     assert(e3('5') == '5'); // A non-alphabetical character does not changes
@@ -507,8 +556,8 @@ unittest
 unittest
 {
     // These have the same settings.
-    auto encipherer = Enigma!2(plugboardDoNothing, rotorVI, rotorVII, reflectorC, "PY");
-    auto decipherer = Enigma!2(plugboardDoNothing, rotorVI, rotorVII, reflectorC, "PY");
+    auto encipherer = Enigma!2(plugboardDoNothing, entryWheelDoNothing, rotorVI, rotorVII, reflectorC, "PY");
+    auto decipherer = Enigma!2(plugboardDoNothing, entryWheelDoNothing, rotorVI, rotorVII, reflectorC, "PY");
 
     foreach (dchar c; "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     {
@@ -523,14 +572,14 @@ unittest
 unittest
 {
     // These have the equivalent settings.
-    auto m3 = EnigmaM3(plugboardDoNothing, rotorIII, rotorII, rotorI, reflectorB /*!*/ ,
+    auto m3 = EnigmaM3(plugboardDoNothing, entryWheelDoNothing, rotorIII, rotorII, rotorI, reflectorB /*!*/ ,
         "FOO");
-    auto m4 = EnigmaM4(plugboardDoNothing, rotorIII, rotorII, rotorI,
+    auto m4 = EnigmaM4(plugboardDoNothing, entryWheelDoNothing, rotorIII, rotorII, rotorI,
         rotorBeta('A') /*!*/ , reflectorBThin /*!*/ , "FOOA" /*!*/ ); // FOO*A*
 
     // If each machine has just one movable rotor...
-    auto e1 = Enigma!1(plugboardDoNothing, rotorI, reflectorC /*!*/ , "X");
-    auto e2fixed = Enigma!(2, true  /*!*/ )(plugboardDoNothing, rotorI,
+    auto e1 = Enigma!1(plugboardDoNothing, entryWheelDoNothing, rotorI, reflectorC /*!*/ , "X");
+    auto e2fixed = Enigma!(2, true  /*!*/ )(plugboardDoNothing, entryWheelDoNothing, rotorI,
         rotorGamma('A') /*!*/ , reflectorCThin /*!*/ , "XA" /*!*/ ); // X*A*
 
     foreach (dchar c; "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -548,9 +597,9 @@ unittest
     import std.array : appender;
 
     // These have the equivalent settings.
-    auto m4 = EnigmaM4(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), rotorIII('Y'),
+    auto m4 = EnigmaM4(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), entryWheelDoNothing, rotorIII('Y'),
         rotorII('V'), rotorI('R'), rotorBeta, reflectorBThin, "UEQA");
-    auto m3 = EnigmaM3(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), rotorIII('Y'),
+    auto m3 = EnigmaM3(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), entryWheelDoNothing, rotorIII('Y'),
         rotorII('V'), rotorI('R'), reflectorB, "UEQ");
 
     auto enciphered = appender!dstring;
