@@ -294,7 +294,7 @@ body
     return Reflector(substitution.map!toUpper.map!"a-'A'".array.permutation!N);
 }
 
-/// Currently only M3- or M4-like machines are available.
+/// Currently only I-, M3- or M4-like machines are available.
 struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
 {
     private immutable Plugboard plugboard;
@@ -409,10 +409,13 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
     }
 }
 
-/// The M3 Enigma machine, which has three rotor slots.
+/// Enigma I 'Wehrmacht', which has three rotor slots.
+alias EnigmaI = Enigma!3;
+
+/// Enigma M3, which has three rotor slots.
 alias EnigmaM3 = Enigma!3;
 
-/// The M4 Enigma machine, which has four rotor slots. The fourth rotor never rotates.
+/// Enigma M4, which has four rotor slots. The fourth rotor never rotates.
 alias EnigmaM4 = Enigma!(4, true);
 
 /// Predefined existent rotors.
@@ -491,6 +494,11 @@ auto plugboardDoNothing() pure
 }
 
 /// Predefined existent reflectors.
+auto reflectorA() pure
+{
+    return reflector("EJMZALYXVBWFCRQUONTSPIKHGD");
+}
+
 auto reflectorB() pure
 {
     return reflector("YRUHQSLDPXNGOKMIEBFZCWVJAT");
