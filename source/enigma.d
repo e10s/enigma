@@ -83,8 +83,13 @@ struct Rotor
 auto rotor(S)(in S forwardSubstitution, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
 in
 {
-    import std.ascii : isAlpha;
+    import std.algorithm.comparison : isPermutation;
+    import std.algorithm.iteration : map;
+    import std.ascii : isAlpha, toUpper;
+    import std.range : iota, walkLength;
 
+    assert(forwardSubstitution.walkLength == N, "Bad length.");
+    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(ringSetting.isAlpha);
 }
 body
@@ -107,8 +112,13 @@ body
 auto rotor(S)(in S forwardSubstitution, dchar turnover, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
 in
 {
-    import std.ascii : isAlpha;
+    import std.algorithm.comparison : isPermutation;
+    import std.algorithm.iteration : map;
+    import std.ascii : isAlpha, toUpper;
+    import std.range : iota, walkLength;
 
+    assert(forwardSubstitution.walkLength == N, "Bad length.");
+    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(turnover.isAlpha);
     assert(ringSetting.isAlpha);
 }
@@ -133,8 +143,13 @@ body
 auto rotor(S)(in S forwardSubstitution, dchar turnover1, dchar turnover2, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
 in
 {
-    import std.ascii : isAlpha;
+    import std.algorithm.comparison : isPermutation;
+    import std.algorithm.iteration : map;
+    import std.ascii : isAlpha, toUpper;
+    import std.range : iota, walkLength;
 
+    assert(forwardSubstitution.walkLength == N, "Bad length.");
+    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(turnover1.isAlpha);
     assert(turnover2.isAlpha);
     assert(ringSetting.isAlpha);
