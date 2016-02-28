@@ -372,7 +372,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
     {
         import boolean_matrix : lowerRotator, upperRotator, Identity;
 
-        ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
+        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotator = x > 0 ? lowerRotator!N(x) : upperRotator!N(-x);
         immutable composedPerm = rotors[rotorID].perm * relRotator * prevPerm;
         return rotorID == rotorN - 1 ? upperRotator!N(rotationStates[rotorID]) * composedPerm
