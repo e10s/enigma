@@ -295,7 +295,7 @@ body
 }
 
 /// Currently only I-, M3- or M4-like machines are available.
-struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
+struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = true)
 {
     import boolean_matrix : BSM;
     private immutable BSM!N composedInputPerm;
@@ -332,12 +332,15 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false)
     }
 
     ///
-    this(in Plugboard plugboard, in EntryWheel entryWheel,
-        in Repeat!(rotorN, Rotor) rotors,
-        in Reflector reflector, in dchar[rotorN] rotorStartPos)
+    static if (hasPlugboard)
     {
-        this(entryWheel, rotors, reflector, rotorStartPos);
-        this.composedInputPerm = cast(immutable) (entryWheel * plugboard);
+        this(in Plugboard plugboard, in EntryWheel entryWheel,
+            in Repeat!(rotorN, Rotor) rotors,
+            in Reflector reflector, in dchar[rotorN] rotorStartPos)
+        {
+            this(entryWheel, rotors, reflector, rotorStartPos);
+            this.composedInputPerm = cast(immutable) (entryWheel * plugboard);
+        }
     }
 
     private void step()
