@@ -168,7 +168,7 @@ struct Plugboard
 /++
  + A convenience function to make a plugboard from a substitution.
  +/
-auto plugboard(S)(S substitution) pure if (isSomeStringOrDcharRange!S)
+auto plugboard(S)(in S substitution) pure if (isSomeStringOrDcharRange!S)
 in
 {
     import std.algorithm.comparison : isPermutation;
@@ -213,7 +213,7 @@ struct Reflector
 /++
  + A convenience function to make a reflector from a substitution.
  +/
-auto reflector(S)(S substitution) pure if (isSomeStringOrDcharRange!S)
+auto reflector(S)(in S substitution) pure if (isSomeStringOrDcharRange!S)
 in
 {
     import std.algorithm.comparison : isPermutation;
