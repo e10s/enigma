@@ -484,7 +484,7 @@ alias EnigmaM4 = Enigma!(4, true);
 alias EnigmaD = Enigma!(3, false, false, true);
 
 /// Swiss K, which has three rotor slots and no plugboard. The reflector can be set to any positions.
-alias SwissK = Enigma!(3, false, false, true);
+alias SwissK = EnigmaD;
 
 /// Predefined existent rotors.
 auto rotorI(dchar ringSetting = 'A') pure
