@@ -480,7 +480,10 @@ alias EnigmaM3 = Enigma!3;
 /// Enigma M4, which has four rotor slots. The fourth rotor never rotates.
 alias EnigmaM4 = Enigma!(4, true);
 
-// Swiss K, which has three rotor slots and no plugboard. The reflector can be set to any positions.
+/// Enigma D, which has three rotor slots and no plugboard. The reflector can be set to any positions.
+alias EnigmaD = Enigma!(3, false, false, true);
+
+/// Swiss K, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias SwissK = Enigma!(3, false, false, true);
 
 /// Predefined existent rotors.
@@ -529,6 +532,24 @@ auto rotorVII(dchar ringSetting = 'A') pure
 auto rotorVIII(dchar ringSetting = 'A') pure
 {
     return rotor("FKQHTLXOCBJSPDZRAMEWNIUYGV", 'Z', 'M', ringSetting);
+}
+
+/// ditto
+auto rotorID(dchar ringSetting = 'A') pure
+{
+    return rotor("LPGSZMHAEOQKVXRFYBUTNICJDW", 'Y', ringSetting);
+}
+
+/// ditto
+auto rotorIID(dchar ringSetting = 'A') pure
+{
+    return rotor("SLVGBTFXJQOHEWIRZYAMKPCNDU", 'E', ringSetting);
+}
+
+/// ditto
+auto rotorIIID(dchar ringSetting = 'A') pure
+{
+    return rotor("CJGDPSHKTURAWZXFMYNQOBVLIE", 'N', ringSetting);
 }
 
 /// ditto
@@ -612,10 +633,13 @@ auto reflectorCThin() pure
 }
 
 /// ditto
-auto reflectorK(dchar ringSetting = 'A') pure
+auto reflectorD(dchar ringSetting = 'A') pure
 {
     return reflector("IMETCGFRAYSQBZXWLHKDVUPOJN", ringSetting);
 }
+
+/// ditto
+alias reflectorK = reflectorD;
 
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
 unittest
@@ -641,9 +665,36 @@ unittest
 
     assert(m3('A') == 'V');
     assert(m3.rotationStates == [20, 5, 1]);
+}
+
+// The noches are fixed to the ring.
+unittest
+{
+    auto ed = EnigmaD(entryWheelQWE, rotorID, rotorIID, rotorIIID, reflectorD, "UDN" /*!*/ , 'B');
+
+    assert(ed.rotationStates == [20, 3, 13]);
+
+    assert(ed('A') == 'Z');
+    assert(ed.rotationStates == [21, 3, 13]);
+
+    assert(ed('A') == 'D');
+    assert(ed.rotationStates == [22, 3, 13]);
+
+    assert(ed('A') == 'V');
+    assert(ed.rotationStates == [23, 3, 13]);
+
+    assert(ed('A') == 'I');
+    assert(ed.rotationStates == [24, 3, 13]);
+
+    assert(ed('A') == 'C');
+    assert(ed.rotationStates == [25, 4, 13]);
+
+    assert(ed('A') == 'Z');
+    assert(ed.rotationStates == [0, 5, 14]);
 
 
-    auto sk = SwissK(entryWheelQWE, rotorIK('Z'), rotorIIK('Y'), rotorIIIK, reflectorK('E'), "UDN", 'X');
+    // The K's rotor positions are same as the D's.
+    auto sk = SwissK(entryWheelQWE, rotorIK('Z'), rotorIIK('Y'), rotorIIIK, reflectorK('E'), "UDN" /*!*/ , 'X');
 
     assert(sk.rotationStates == [20, 3, 13]);
 
