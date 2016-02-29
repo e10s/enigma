@@ -269,10 +269,12 @@ in
 {
     import std.algorithm.comparison : isPermutation;
     import std.algorithm.iteration : map;
+    import std.algorithm.searching : canFind;
     import std.ascii : isAlpha, toUpper;
-    import std.range : iota, walkLength;
+    import std.range : iota, walkLength, zip;
 
     assert(substitution.walkLength == N, "Bad length.");
+    assert(!N.iota.zip(substitution.map!toUpper.map!"a-'A'").canFind!"a[0]==a[1]", "Self-loop found.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(ringSetting.isAlpha);
 }
