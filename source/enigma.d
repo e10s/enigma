@@ -298,7 +298,7 @@ body
         ringSetting.toUpper - 'A');
 }
 
-/// Currently only I-, M3- or M4-like machines are available.
+/// Currently machines with the double-stepping mechanism are available.
 struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = true, bool settableReflectorPos = false)
 {
     import boolean_matrix : BSM;
