@@ -6,6 +6,7 @@ __dummy.html
 *.lib
 *.exe
 *.selections.json
+/docs
 
 # cov products
 *.lst
