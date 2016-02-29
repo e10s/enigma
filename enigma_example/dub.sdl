@@ -1,0 +1,5 @@
+name "enigma_example"
+description "Example usage of enigma."
+copyright "Copyright (C) 2016, Kazuya Takahashi"
+authors "Kazuya Takahashi"
+dependency "enigma" version="*"
