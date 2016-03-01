@@ -280,8 +280,9 @@ in
 }
 out (r)
 {
-    import boolean_matrix : isSymmetric;
+    import boolean_matrix : isIrreflexive, isSymmetric;
 
+    assert(r.isIrreflexive);
     assert(r.isSymmetric);
 }
 body

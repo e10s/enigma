@@ -109,6 +109,19 @@ auto transpose(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
     return ta;
 }
 
+auto isIrreflexive(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+{
+    foreach (i, row; a)
+    {
+        if (row[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 auto isSymmetric(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
 {
     foreach (i, row; a[0 .. $-1])
