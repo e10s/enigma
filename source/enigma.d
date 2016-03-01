@@ -467,11 +467,14 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
     {
         step();
 
-        import boolean_matrix : transpose, BCV;
+        import boolean_matrix : isBijective, isIrreflexive, isSymmetric, transpose, BCV;
 
         immutable fwdPerm = composeForwardPermutation(composedInputPerm, 0);
         // bwdPerm = fwdPerm^-1 = fwdPerm^T
         immutable wholePerm = fwdPerm.transpose * reflector * fwdPerm;
+        assert(wholePerm.isBijective);
+        assert(wholePerm.isIrreflexive);
+        assert(wholePerm.isSymmetric);
         immutable w = wholePerm * BCV!N.e(keyInputID);
         import std.algorithm.searching : countUntil;
 
