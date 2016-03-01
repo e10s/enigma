@@ -223,9 +223,10 @@ struct Plugboard
     this()(in auto ref BSM!N perm) pure
     in
     {
-        import boolean_matrix : isBijective;
+        import boolean_matrix : isBijective, isSymmetric;
 
         assert(perm.isBijective);
+        assert(perm.isSymmetric);
     }
     body
     {
@@ -249,12 +250,6 @@ in
     assert(substitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
 }
-out (r)
-{
-    import boolean_matrix : isSymmetric;
-
-    assert(r.isSymmetric);
-}
 body
 {
     import std.algorithm.iteration : map;
@@ -275,9 +270,11 @@ struct Reflector
     this()(in auto ref BSM!N perm, size_t ringOffset) pure
     in
     {
-        import boolean_matrix : isBijective;
+        import boolean_matrix : isBijective, isIrreflexive, isSymmetric;
 
         assert(perm.isBijective);
+        assert(perm.isIrreflexive);
+        assert(perm.isSymmetric);
     }
     body
     {
@@ -305,13 +302,6 @@ in
     assert(!N.iota.zip(substitution.map!toUpper.map!"a-'A'").canFind!"a[0]==a[1]", "Self-loop found.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(ringSetting.isAlpha);
-}
-out (r)
-{
-    import boolean_matrix : isIrreflexive, isSymmetric;
-
-    assert(r.isIrreflexive);
-    assert(r.isSymmetric);
 }
 body
 {
