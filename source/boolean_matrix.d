@@ -109,6 +109,12 @@ auto transpose(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
     return ta;
 }
 
+auto isBijective(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+{
+    import std.algorithm.searching : all, count;
+    return a[].all!(row => row[].count!"a" == 1);
+}
+
 auto isIrreflexive(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
 {
     foreach (i, row; a)

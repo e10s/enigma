@@ -35,6 +35,13 @@ struct Rotor
      + If ringOffset is `2`, it corresponds to "C-03".
      +/
     this()(in auto ref BSM!N perm, size_t ringOffset) pure
+    in
+    {
+        import boolean_matrix : isBijective;
+
+        assert(perm.isBijective);
+    }
+    body
     {
         import boolean_matrix : lowerRotator, upperRotator;
 
@@ -168,6 +175,13 @@ struct EntryWheel
     immutable BSM!N perm;
     ///
     this()(in auto ref BSM!N perm) pure
+    in
+    {
+        import boolean_matrix : isBijective;
+
+        assert(perm.isBijective);
+    }
+    body
     {
         this.perm = cast(immutable) perm;
     }
@@ -207,6 +221,13 @@ struct Plugboard
     immutable BSM!N perm;
     ///
     this()(in auto ref BSM!N perm) pure
+    in
+    {
+        import boolean_matrix : isBijective;
+
+        assert(perm.isBijective);
+    }
+    body
     {
         this.perm = cast(immutable) perm;
     }
@@ -252,6 +273,13 @@ struct Reflector
     immutable BSM!N perm;
     ///
     this()(in auto ref BSM!N perm, size_t ringOffset) pure
+    in
+    {
+        import boolean_matrix : isBijective;
+
+        assert(perm.isBijective);
+    }
+    body
     {
         import boolean_matrix : lowerRotator, upperRotator;
 
