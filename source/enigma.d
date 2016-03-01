@@ -430,7 +430,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
      +/
     private BSM!N composeForwardPermutation(in ref BSM!N prevPerm, size_t rotorID)
     {
-        import boolean_matrix : lowerRotator, upperRotator, Identity;
+        import boolean_matrix : lowerRotator, upperRotator;
 
         immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotator = x > 0 ? lowerRotator!N(x) : upperRotator!N(-x);
