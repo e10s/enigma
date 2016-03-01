@@ -39,7 +39,7 @@ struct Rotor
     {
         import boolean_matrix : isBijective;
 
-        assert(perm.isBijective);
+        assert(perm.isBijective, "Rotor must be bijective.");
     }
     body
     {
@@ -92,7 +92,7 @@ in
 
     assert(forwardSubstitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(ringSetting.isAlpha);
+    assert(ringSetting.isAlpha, "Bad ring setting.");
 }
 body
 {
@@ -121,8 +121,8 @@ in
 
     assert(forwardSubstitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(turnover.isAlpha);
-    assert(ringSetting.isAlpha);
+    assert(turnover.isAlpha, "Bad turnover setting.");
+    assert(ringSetting.isAlpha, "Bad ring setting.");
 }
 body
 {
@@ -152,9 +152,9 @@ in
 
     assert(forwardSubstitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(turnover1.isAlpha);
-    assert(turnover2.isAlpha);
-    assert(ringSetting.isAlpha);
+    assert(turnover1.isAlpha, "Bad turnover setting.");
+    assert(turnover2.isAlpha, "Bad turnover setting.");
+    assert(ringSetting.isAlpha, "Bad ring setting.");
 }
 body
 {
@@ -179,7 +179,7 @@ struct EntryWheel
     {
         import boolean_matrix : isBijective;
 
-        assert(perm.isBijective);
+        assert(perm.isBijective, "Entry wheel must be bijective.");
     }
     body
     {
@@ -225,8 +225,8 @@ struct Plugboard
     {
         import boolean_matrix : isBijective, isSymmetric;
 
-        assert(perm.isBijective);
-        assert(perm.isSymmetric);
+        assert(perm.isBijective, "Plugboard must be bijective.");
+        assert(perm.isSymmetric, "Plugboard must be symmetric.");
     }
     body
     {
@@ -272,9 +272,9 @@ struct Reflector
     {
         import boolean_matrix : isBijective, isIrreflexive, isSymmetric;
 
-        assert(perm.isBijective);
-        assert(perm.isIrreflexive);
-        assert(perm.isSymmetric);
+        assert(perm.isBijective, "Reflector must be bijective.");
+        assert(perm.isIrreflexive, "Reflector must be irreflexive.");
+        assert(perm.isSymmetric, "Reflector must be bijective.");
     }
     body
     {
@@ -301,7 +301,7 @@ in
     assert(substitution.walkLength == N, "Bad length.");
     assert(!N.iota.zip(substitution.map!toUpper.map!"a-'A'").canFind!"a[0]==a[1]", "Self-loop found.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(ringSetting.isAlpha);
+    assert(ringSetting.isAlpha, "Bad ring setting.");
 }
 body
 {
@@ -334,7 +334,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
         {
             import std.ascii : isAlpha;
 
-            assert(c.isAlpha);
+            assert(c.isAlpha, "Bad start position.");
         }
     }
     body
@@ -361,7 +361,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
         {
             import std.ascii : isAlpha;
 
-            assert(reflectorPos.isAlpha);
+            assert(reflectorPos.isAlpha, "Bad reflector position.");
         }
         body
         {
@@ -397,7 +397,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
             {
                 import std.ascii : isAlpha;
 
-                assert(reflectorPos.isAlpha);
+                assert(reflectorPos.isAlpha, "Bad reflector position.");
             }
             body
             {
