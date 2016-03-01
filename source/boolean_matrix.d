@@ -42,6 +42,15 @@ struct BSM(size_t n) if (n > 0)
 
         return r;
     }
+
+    static enum I = {
+        BSM!n id;
+        foreach (i, ref row; id)
+        {
+            row[i] = true;
+        }
+        return id;
+    }();
 }
 
 // boolean column vector
@@ -49,6 +58,18 @@ struct BCV(size_t n) if (n > 0)
 {
     bool[n] c_vec;
     alias c_vec this;
+
+    static auto e(size_t k) pure
+    in
+    {
+        assert(k < n);
+    }
+    body
+    {
+        BCV!n v;
+        v[k] = true;
+        return v;
+    }
 }
 
 unittest
@@ -73,15 +94,6 @@ unittest
     assert(a * b == c);
 }
 
-enum Identity(size_t n) = {
-    BSM!n id;
-    foreach (i; 0 .. n)
-    {
-        id[i][i] = true;
-    }
-    return id;
-}();
-
 import std.traits : TemplateArgsOf, TemplateOf;
 
 auto transpose(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
@@ -102,7 +114,7 @@ auto lowerRotator(size_t n)(size_t shift) @property pure
     BSM!n r;
     if (shift % n == 0)
     {
-        r = Identity!n;
+        r = BSM!n.I;
     }
     else
     {
@@ -119,7 +131,7 @@ auto upperRotator(size_t n)(size_t shift) @property pure
     BSM!n r;
     if (shift % n == 0)
     {
-        r = Identity!n;
+        r = BSM!n.I;
     }
     else
     {

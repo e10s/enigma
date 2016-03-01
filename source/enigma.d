@@ -440,6 +440,11 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
     }
 
     private auto process(size_t keyInputID)
+    out (r)
+    {
+        assert(r >= 0);
+    }
+    body
     {
         step();
 
@@ -448,15 +453,11 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
         immutable fwdPerm = composeForwardPermutation(composedInputPerm, 0);
         // bwdPerm = fwdPerm^-1 = fwdPerm^T
         immutable wholePerm = fwdPerm.transpose * reflector * fwdPerm;
-        BCV!N v;
-        v[keyInputID] = true;
-        immutable w = wholePerm * v;
+        immutable w = wholePerm * BCV!N.e(keyInputID);
         import std.algorithm.searching : countUntil;
 
-        immutable r = w[].countUntil(true);
-        assert(r >= 0);
+        immutable r = w[].countUntil!"a";
         return r;
-
     }
 
     /// Enciphers only an alphabetical character through the current Enigma machine.
