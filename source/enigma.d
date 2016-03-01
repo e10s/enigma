@@ -230,9 +230,9 @@ in
 }
 out (r)
 {
-    import boolean_matrix : transpose;
+    import boolean_matrix : isSymmetric;
 
-    assert(r == r.transpose);
+    assert(r.isSymmetric);
 }
 body
 {
@@ -280,9 +280,9 @@ in
 }
 out (r)
 {
-    import boolean_matrix : transpose;
+    import boolean_matrix : isSymmetric;
 
-    assert(r == r.transpose);
+    assert(r.isSymmetric);
 }
 body
 {

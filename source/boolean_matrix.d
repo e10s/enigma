@@ -109,6 +109,22 @@ auto transpose(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
     return ta;
 }
 
+auto isSymmetric(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+{
+    foreach (i, row; a[0 .. $-1])
+    {
+        foreach (j, e; row[1 .. $])
+        {
+            if (row[j+1] != e)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 auto lowerRotator(size_t n)(size_t shift) @property pure
 {
     BSM!n r;
