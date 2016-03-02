@@ -59,7 +59,7 @@ struct BSM(size_t n) if (n > 0)
                         break;
                     }
                 }
-            
+
             }
 
             return r;
@@ -176,11 +176,11 @@ auto isIrreflexive(M)(in M a) pure if (isInstanceOf!(BSM, M))
 
 auto isSymmetric(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
-    foreach (i, row; a[0 .. $-1])
+    foreach (i, row; a[0 .. $ - 1])
     {
         foreach (j, e; row[1 .. $])
         {
-            if (row[j+1] != e)
+            if (row[j + 1] != e)
             {
                 return false;
             }
