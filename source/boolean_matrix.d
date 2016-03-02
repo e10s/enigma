@@ -140,8 +140,25 @@ auto transpose(M)(in M a) pure if (isInstanceOf!(BSM, M))
 
 auto isBijective(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
-    import std.algorithm.searching : all, count;
-    return a[].all!(row => row[].count!"a" == 1);
+    foreach (i, ref row; a)
+    {
+        size_t k;
+
+        foreach (e; row)
+        {
+            if (e && ++k == 2)
+            {
+                return false;
+            }
+        }
+
+        if (k == 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 auto isIrreflexive(M)(in M a) pure if (isInstanceOf!(BSM, M))
