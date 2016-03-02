@@ -121,10 +121,12 @@ unittest
     assert(a * b == c);
 }
 
-import std.traits : TemplateArgsOf, TemplateOf;
+import std.traits : isInstanceOf;
 
-auto transpose(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+auto transpose(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
+    import std.traits : TemplateArgsOf;
+
     BSM!(TemplateArgsOf!M) ta;
     foreach (i, row; a)
     {
@@ -136,13 +138,13 @@ auto transpose(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
     return ta;
 }
 
-auto isBijective(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+auto isBijective(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
     import std.algorithm.searching : all, count;
     return a[].all!(row => row[].count!"a" == 1);
 }
 
-auto isIrreflexive(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+auto isIrreflexive(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
     foreach (i, row; a)
     {
@@ -155,7 +157,7 @@ auto isIrreflexive(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
     return true;
 }
 
-auto isSymmetric(M)(in M a) pure if (__traits(isSame, TemplateOf!M, BSM))
+auto isSymmetric(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
     foreach (i, row; a[0 .. $-1])
     {
