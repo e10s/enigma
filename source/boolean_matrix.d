@@ -12,35 +12,62 @@ struct BSM(size_t n) if (n > 0)
     bool[n][n] s_mat;
     alias s_mat this;
 
-    auto opMul()(in auto ref BSM!n matrix) const pure
+    auto opBinary(string op)(in auto ref BSM!n matrix) const pure
     {
-        import std.range : iota, transversal, zip;
-        import std.algorithm.searching : canFind;
-        import std.algorithm.mutation : copy;
-        import std.algorithm.iteration : map;
-
-        BSM!n r;
-        foreach (i, ref row; r)
+        static if (op == "*")
         {
-            n.iota.map!(j => zip(s_mat[i][], matrix[].transversal(j))
-                .canFind!"a[0]&&a[1]").copy(row[]);
-        }
+            BSM!n r;
 
-        return r;
+            foreach (i, ref row; r)
+            {
+                foreach (j, ref e; row)
+                {
+                    foreach (k, s_e; s_mat[i])
+                    {
+                        e = s_e && matrix[k][j];
+
+                        if (e)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return r;
+        }
+        else
+        {
+            static assert(0, `Operator '` ~ op ~ `' is not implemented.`);
+        }
     }
 
-    auto opMul()(in auto ref BCV!n vector) const pure
+    auto opBinary(string op)(in auto ref BCV!n vector) const pure
     {
-        import std.range : zip;
-        import std.algorithm.searching : canFind;
-        import std.algorithm.mutation : copy;
-        import std.algorithm.iteration : map;
+        static if (op == "*")
+        {
+            BCV!n r;
 
-        BCV!n r;
-        s_mat[].map!(row => zip(row[], vector[]).canFind!"a[0]&&a[1]")
-            .copy(r[]);
+            foreach (i, ref e; r)
+            {
+                foreach (j, s_e; s_mat[i])
+                {
+                    e = s_e && vector[j];
 
-        return r;
+                    if (e)
+                    {
+                        break;
+                    }
+                }
+            
+            }
+
+            return r;
+        }
+        else
+        {
+            static assert(0, `Operator '` ~ op ~ `' is not implemented.`);
+        }
     }
 
     static enum I = {
