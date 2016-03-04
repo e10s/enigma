@@ -18,18 +18,13 @@ struct BSM(size_t n) if (n > 0)
         {
             BSM!n r;
 
-            foreach (i, ref row; r)
+            foreach (i, ref row; s_mat)
             {
-                foreach (j, ref e; row)
+                foreach (j, e; row)
                 {
-                    foreach (k, s_e; s_mat[i])
+                    if (e)
                     {
-                        e = s_e && matrix[k][j];
-
-                        if (e)
-                        {
-                            break;
-                        }
+                        r[i][] = r[i][] + matrix[j][];
                     }
                 }
             }
@@ -48,18 +43,16 @@ struct BSM(size_t n) if (n > 0)
         {
             BCV!n r;
 
-            foreach (i, ref e; r)
+            foreach (i, ref row; s_mat)
             {
-                foreach (j, s_e; s_mat[i])
+                foreach (j, e; row)
                 {
-                    e = s_e && vector[j];
-
-                    if (e)
+                    if (e && vector[j])
                     {
+                        r[i] = true;
                         break;
                     }
                 }
-
             }
 
             return r;
