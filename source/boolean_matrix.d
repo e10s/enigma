@@ -24,7 +24,7 @@ struct BSM(size_t n) if (n > 0)
                 {
                     if (e)
                     {
-                        r[i][] = r[i][] + matrix[j][];
+                        r[i][] |= matrix[j][];
                     }
                 }
             }
