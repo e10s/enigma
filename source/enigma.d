@@ -506,6 +506,9 @@ alias EnigmaD = Enigma!(3, false, false, true);
 /// Swiss K, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias SwissK = EnigmaD;
 
+/// Enigma R, which has three rotor slots and no plugboard. The reflector can be set to any positions.
+alias EnigmaR = EnigmaD;
+
 /// Predefined existent rotors.
 auto rotorI(dchar ringSetting = 'A') pure
 {
@@ -590,6 +593,24 @@ auto rotorIIIK(dchar ringSetting = 'A') pure
     return rotor("EHRVXGAOBQUSIMZFLYNWKTPDJC", 'N', ringSetting);
 }
 
+/// ditto
+auto rotorIR(dchar ringSetting = 'A') pure
+{
+    return rotor("JGDQOXUSCAMIFRVTPNEWKBLZYH", 'N', ringSetting);
+}
+
+/// ditto
+auto rotorIIR(dchar ringSetting = 'A') pure
+{
+    return rotor("NTZPSFBOKMWRCJDIVLAEYUXHGQ", 'E', ringSetting);
+}
+
+/// ditto
+auto rotorIIIR(dchar ringSetting = 'A') pure
+{
+    return rotor("JVIUBHTCDYAKEQZPOSGXNRMWFL", 'Y', ringSetting);
+}
+
 /++
 + Predefined existent rotors. Because these rotors have no turnover notches, they are generally set
 + side by side with a reflector.
@@ -660,6 +681,12 @@ auto reflectorD(dchar ringSetting = 'A') pure
 
 /// ditto
 alias reflectorK = reflectorD;
+
+/// ditto
+auto reflectorR(dchar ringSetting = 'A') pure
+{
+    return reflector("QYHOGNECVPUZTFDJAXWMKISRBL", ringSetting);
+}
 
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
 unittest
@@ -735,6 +762,18 @@ unittest
 
     assert(sk('A') == 'Q');
     assert(sk.rotationStates == [0, 5, 14]);
+}
+
+unittest
+{
+    auto er = EnigmaR(entryWheelQWE, rotorIR, rotorIIR, rotorIIIR, reflectorR('E'), "KBA", 'C');
+
+    assert(er('A') == 'Y');
+    assert(er('A') == 'P');
+    assert(er('A') == 'I');
+    assert(er('A') == 'R');
+    assert(er('A') == 'Z');
+    assert(er('A') == 'S');
 }
 
 /// Step-by-step enciphering.
