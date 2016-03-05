@@ -547,10 +547,13 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
 alias EnigmaI = Enigma!3;
 
 /// Enigma M3, which has three rotor slots.
-alias EnigmaM3 = Enigma!3;
+alias EnigmaM3 = EnigmaI;
 
 /// Enigma M4, which has four rotor slots. The fourth rotor never rotates.
 alias EnigmaM4 = Enigma!(4, true);
+
+/// Norway Enigma, which has three rotor slots.
+alias Norway = EnigmaI;
 
 /// Enigma D, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias EnigmaD = Enigma!(3, false, false, true);
@@ -610,6 +613,33 @@ auto rotorVII(dchar ringSetting = 'A') pure
 auto rotorVIII(dchar ringSetting = 'A') pure
 {
     return rotor("FKQHTLXOCBJSPDZRAMEWNIUYGV", 'Z', 'M', ringSetting);
+}
+
+/// ditto
+auto rotorINor(dchar ringSetting = 'A') pure
+{
+    return rotor("WTOKASUYVRBXJHQCPZEFMDINLG", 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIINor(dchar ringSetting = 'A') pure
+{
+    return rotor("GJLPUBSWEMCTQVHXAOFZDRKYNI", 'E', ringSetting);
+}
+
+/// ditto
+auto rotorIIINor(dchar ringSetting = 'A') pure
+{
+    return rotor("JWFMHNBPUSDYTIXVZGRQLAOEKC", 'V', ringSetting);
+}
+
+/// ditto
+alias rotorIVNor = rotorIV;
+
+/// ditto
+auto rotorVNor(dchar ringSetting = 'A') pure
+{
+    return rotor("HEJXQOTZBVFDASCILWPGYNMURK", 'Z', ringSetting);
 }
 
 /// ditto
@@ -777,6 +807,12 @@ auto reflectorCThin() pure
 }
 
 /// ditto
+auto reflectorNor() pure
+{
+    return reflector("MOWJYPUXNDSRAIBFVLKZGQCHET");
+}
+
+/// ditto
 auto reflectorD(dchar ringSetting = 'A') pure
 {
     return reflector("IMETCGFRAYSQBZXWLHKDVUPOJN", ringSetting);
@@ -871,6 +907,28 @@ unittest
 
     assert(sk('A') == 'Q');
     assert(sk.rotationStates == [0, 5, 14]);
+}
+
+unittest
+{
+    auto nor1 = Norway(entryWheelABC, rotorINor, rotorIINor, rotorIIINor, reflectorNor, "PDL");
+
+    assert(nor1('A') == 'I');
+    assert(nor1('A') == 'F');
+    assert(nor1('A') == 'L');
+    assert(nor1('A') == 'F');
+    assert(nor1('A') == 'F');
+    assert(nor1('A') == 'H');
+
+
+    auto nor2 = Norway(plugboard("ABCDEGFHIJKLMNOPQRSTUVWXYZ"), entryWheelABC, rotorINor, rotorIVNor, rotorVNor, reflectorNor, "PDL");
+
+    assert(nor2('A') == 'P');
+    assert(nor2('A') == 'G');
+    assert(nor2('A') == 'J');
+    assert(nor2('A') == 'N');
+    assert(nor2('A') == 'U');
+    assert(nor2('A') == 'Z');
 }
 
 unittest
