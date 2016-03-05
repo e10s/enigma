@@ -75,6 +75,22 @@ struct Rotor
         this.turnovers = [turnover1 % N, turnover2 % N].sort().array;
         hasNotch = true;
     }
+
+    /++
+     + Constructs a rotor with five turnover notches.
+     + If turnover1 is `1` and turnover2 is `25`, the next rotor steps
+     + when this rotor steps from B to C and from Z to A.
+     + If ringOffset is `2`, it corresponds to "C-03".
+     +/
+    this()(in auto ref BSM!N perm, size_t turnover1, size_t turnover2, size_t turnover3, size_t turnover4, size_t turnover5, size_t ringOffset) pure
+    {
+        import std.algorithm.sorting : sort;
+        import std.array : array;
+
+        this(perm, ringOffset);
+        this.turnovers = [turnover1 % N, turnover2 % N, turnover3 % N, turnover4 % N, turnover5 % N].sort().array;
+        hasNotch = true;
+    }
 }
 
 /++
@@ -165,6 +181,42 @@ body
 
     return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
         turnover1.toUpper - 'A', turnover2.toUpper - 'A', ringSetting.toUpper - 'A');
+}
+
+/++
+ + A convenience function to make a rotor with five turnover notches
+ + from a forward substitution.
+ + If turnover1 is `'B'` and turnover2 is `'Z'`, the next rotor steps
+ + when this rotor steps from B to C and from Z to A.
+ + If ringSetting is `'C'`, it corresponds to "C-03".
+ +/
+auto rotor(S)(in S forwardSubstitution, dchar turnover1, dchar turnover2, dchar turnover3, dchar turnover4, dchar turnover5, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
+in
+{
+    import std.algorithm.comparison : isPermutation;
+    import std.algorithm.iteration : map;
+    import std.ascii : isAlpha, toUpper;
+    import std.range : iota, walkLength;
+
+    assert(forwardSubstitution.walkLength == N, "Bad length.");
+    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+    assert(turnover1.isAlpha, "Bad turnover setting.");
+    assert(turnover2.isAlpha, "Bad turnover setting.");
+    assert(turnover3.isAlpha, "Bad turnover setting.");
+    assert(turnover4.isAlpha, "Bad turnover setting.");
+    assert(turnover5.isAlpha, "Bad turnover setting.");
+    assert(ringSetting.isAlpha, "Bad ring setting.");
+}
+body
+{
+    import std.algorithm.iteration : map;
+    import std.array : array;
+    import std.ascii : toUpper;
+    import boolean_matrix : permutation;
+
+    return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
+        turnover1.toUpper - 'A', turnover2.toUpper - 'A', turnover3.toUpper - 'A',
+        turnover4.toUpper - 'A', turnover5.toUpper - 'A', ringSetting.toUpper - 'A');
 }
 
 ///
@@ -509,6 +561,9 @@ alias SwissK = EnigmaD;
 /// Enigma R, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias EnigmaR = EnigmaD;
 
+/// Enigma T 'Tirpitz', which has three rotor slots and no plugboard. The reflector can be set to any positions.
+alias EnigmaT = EnigmaD;
+
 /// Predefined existent rotors.
 auto rotorI(dchar ringSetting = 'A') pure
 {
@@ -611,6 +666,48 @@ auto rotorIIIR(dchar ringSetting = 'A') pure
     return rotor("JVIUBHTCDYAKEQZPOSGXNRMWFL", 'Y', ringSetting);
 }
 
+/// ditto
+auto rotorIT(dchar ringSetting = 'A') pure
+{
+    return rotor("KPTYUELOCVGRFQDANJMBSWHZXI", 'W', 'Z', 'E', 'K', 'Q', ringSetting);
+}
+
+auto rotorIIT(dchar ringSetting = 'A') pure
+{
+    return rotor("UPHZLWEQMTDJXCAKSOIGVBYFNR", 'W', 'Z', 'F', 'L', 'R', ringSetting);
+}
+
+auto rotorIIIT(dchar ringSetting = 'A') pure
+{
+    return rotor("QUDLYRFEKONVZAXWHMGPJBSICT", 'W', 'Z', 'E', 'K', 'Q', ringSetting);
+}
+
+auto rotorIVT(dchar ringSetting = 'A') pure
+{
+    return rotor("CIWTBKXNRESPFLYDAGVHQUOJZM", 'W', 'Z', 'F', 'L', 'R', ringSetting);
+}
+
+auto rotorVT(dchar ringSetting = 'A') pure
+{
+    return rotor("UAXGISNJBVERDYLFZWTPCKOHMQ", 'Y', 'C', 'F', 'K', 'R', ringSetting);
+}
+
+auto rotorVIT(dchar ringSetting = 'A') pure
+{
+    return rotor("XFUZGALVHCNYSEWQTDMRBKPIOJ", 'X', 'E', 'I', 'M', 'Q', ringSetting);
+}
+
+auto rotorVIIT(dchar ringSetting = 'A') pure
+{
+    return rotor("BJVFTXPLNAYOZIKWGDQERUCHSM", 'Y', 'C', 'F', 'K', 'R', ringSetting);
+}
+
+auto rotorVIIIT(dchar ringSetting = 'A') pure
+{
+    return rotor("YMTPNZHWKODAJXELUQVGCBISFR", 'X', 'E', 'I', 'M', 'Q', ringSetting);
+}
+
+
 /++
 + Predefined existent rotors. Because these rotors have no turnover notches, they are generally set
 + side by side with a reflector.
@@ -636,6 +733,12 @@ auto entryWheelABC() pure
 auto entryWheelQWE() pure
 {
     return entryWheel("QWERTZUIOASDFGHJKPYXCVBNML");
+}
+
+/// Predefined entry wheel: KZR... -> ABC...
+auto entryWheelKZR() pure
+{
+    return entryWheel("KZROUQHYAIGBLWVSTDXFPNMCJE");
 }
 
 /// Predefined the simplest plugboard which does not substitute.
@@ -686,6 +789,12 @@ alias reflectorK = reflectorD;
 auto reflectorR(dchar ringSetting = 'A') pure
 {
     return reflector("QYHOGNECVPUZTFDJAXWMKISRBL", ringSetting);
+}
+
+/// ditto
+auto reflectorT(dchar ringSetting = 'A') pure
+{
+    return reflector("GEKPBTAUMOCNILJDXZYFHWVQSR", ringSetting);
 }
 
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
@@ -774,6 +883,38 @@ unittest
     assert(er('A') == 'R');
     assert(er('A') == 'Z');
     assert(er('A') == 'S');
+}
+
+unittest
+{
+    auto et1 = EnigmaT(entryWheelKZR, rotorIT, rotorIIT, rotorIIIT, reflectorT, "AFR", 'H');
+
+    assert(et1('A') == 'E');
+    assert(et1('A') == 'T');
+    assert(et1('A') == 'U');
+    assert(et1('A') == 'I');
+    assert(et1('A') == 'H');
+    assert(et1('A') == 'M');
+
+
+    auto et2 = EnigmaT(entryWheelKZR, rotorVIT, rotorVT, rotorIVT, reflectorT, "AFR", 'A');
+
+    assert(et2('A') == 'X');
+    assert(et2('A') == 'F');
+    assert(et2('A') == 'M');
+    assert(et2('A') == 'R');
+    assert(et2('A') == 'C');
+    assert(et2('A') == 'B');
+
+
+    auto et3 = EnigmaT(entryWheelKZR, rotorVIIT, rotorVIIIT('Z'), rotorIVT, reflectorT('C'), "AFR", 'V');
+
+    assert(et3('A') == 'D');
+    assert(et3('A') == 'S');
+    assert(et3('A') == 'F');
+    assert(et3('A') == 'N');
+    assert(et3('A') == 'D');
+    assert(et3('A') == 'T');
 }
 
 /// Step-by-step enciphering.
