@@ -114,6 +114,13 @@ unittest
     assert(a * b == c);
 }
 
+unittest
+{
+    immutable a = BCV!3([false, true, false]);
+
+    assert(BCV!3.e(1) == a);
+}
+
 import std.traits : isInstanceOf;
 
 auto transpose(M)(in M a) pure if (isInstanceOf!(BSM, M))
@@ -131,17 +138,40 @@ auto transpose(M)(in M a) pure if (isInstanceOf!(BSM, M))
     return ta;
 }
 
+unittest
+{
+    immutable a = BSM!3([[false, true, false], [false, true, true],
+        [true, false, false]]);
+    immutable b = BSM!3([[false, false, true], [true, true, false],
+        [false, true, false]]);
+
+    assert(transpose(a) == b);
+}
+
 auto isBijective(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
     foreach (i, ref row; a)
     {
         size_t k;
 
-        foreach (e; row)
+        foreach (j, e; row)
         {
-            if (e && ++k == 2)
+            if (e)
             {
-                return false;
+                if (++k == 2)
+                {
+                    return false;
+                }
+                else
+                {
+                    foreach (ref row2; a[i + 1 .. $])
+                    {
+                        if (row2[j])
+                        {
+                            return false;
+                        }
+                    }
+                }
             }
         }
 
@@ -154,9 +184,26 @@ auto isBijective(M)(in M a) pure if (isInstanceOf!(BSM, M))
     return true;
 }
 
+unittest
+{
+    immutable a = BSM!3([[true, false, false], [false, false, true],
+        [false, true, false]]);
+    immutable b = BSM!3([[false, false, true], [false, false, true],
+        [true, true, false]]);
+    immutable c = BSM!3([[true, false, true], [false, true, false],
+        [false, false, false]]);
+    immutable d = BSM!3([[false, false, false], [false, true, false],
+        [false, false, false]]);
+
+    assert(isBijective(a));
+    assert(!isBijective(b));
+    assert(!isBijective(c));
+    assert(!isBijective(d));
+}
+
 auto isIrreflexive(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
-    foreach (i, row; a)
+    foreach (i, ref row; a)
     {
         if (row[i])
         {
@@ -167,13 +214,24 @@ auto isIrreflexive(M)(in M a) pure if (isInstanceOf!(BSM, M))
     return true;
 }
 
+unittest
+{
+    immutable a = BSM!3([[false, false, true], [false, false, true],
+        [true, true, false]]);
+    immutable b = BSM!3([[true, false, true], [false, false, true],
+        [true, false, false]]);
+
+    assert(isIrreflexive(a));
+    assert(!isIrreflexive(b));
+}
+
 auto isSymmetric(M)(in M a) pure if (isInstanceOf!(BSM, M))
 {
-    foreach (i, row; a[0 .. $ - 1])
+    foreach (i, ref row; a[0 .. $ - 1])
     {
-        foreach (j, e; row[1 .. $])
+        foreach (j, e; row[i + 1 .. $])
         {
-            if (row[j + 1] != e)
+            if (a[i + j + 1][i] != e)
             {
                 return false;
             }
@@ -181,6 +239,17 @@ auto isSymmetric(M)(in M a) pure if (isInstanceOf!(BSM, M))
     }
 
     return true;
+}
+
+unittest
+{
+    immutable a = BSM!3([[true, false, true], [false, false, true],
+        [true, true, false]]);
+    immutable b = BSM!3([[true, false, true], [false, false, true],
+        [true, false, false]]);
+
+    assert(isSymmetric(a));
+    assert(!isSymmetric(b));
 }
 
 auto lowerRotator(size_t n)(size_t shift) @property pure
@@ -200,6 +269,19 @@ auto lowerRotator(size_t n)(size_t shift) @property pure
     return r;
 }
 
+unittest
+{
+    immutable a = BSM!3([[true, false, false], [false, true, false],
+        [false, false, true]]);
+    immutable b = BSM!3([[false, false, true], [true, false, false],
+        [false, true, false]]);
+
+    assert(lowerRotator!3(0) == a);
+    assert(lowerRotator!3(21) == a);
+    assert(lowerRotator!3(1) == b);
+    assert(lowerRotator!3(22) == b);
+}
+
 auto upperRotator(size_t n)(size_t shift) @property pure
 {
     BSM!n r;
@@ -215,6 +297,19 @@ auto upperRotator(size_t n)(size_t shift) @property pure
         }
     }
     return r;
+}
+
+unittest
+{
+    immutable a = BSM!3([[true, false, false], [false, true, false],
+        [false, false, true]]);
+    immutable b = BSM!3([[false, true, false], [false, false, true],
+        [true, false, false]]);
+
+    assert(upperRotator!3(0) == a);
+    assert(upperRotator!3(21) == a);
+    assert(upperRotator!3(1) == b);
+    assert(upperRotator!3(22) == b);
 }
 
 auto permutation(size_t N)(in size_t[] substitution)
@@ -233,4 +328,18 @@ body
         p[s][i] = true;
     }
     return p;
+}
+
+unittest
+{
+    immutable a = BSM!3([[true, false, false], [false, true, false],
+        [false, false, true]]);
+    immutable b = BSM!3([[false, true, false], [false, false, true],
+        [true, false, false]]);
+    immutable c = BSM!3([[false, false, true], [false, true, false],
+        [true, false, false]]);
+
+    assert(permutation!3([0, 1, 2]) == a);
+    assert(permutation!3([2, 0, 1]) == b);
+    assert(permutation!3([2, 1, 0]) == c);
 }
