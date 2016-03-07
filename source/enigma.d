@@ -492,24 +492,41 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
         }
     }
 
-    import boolean_matrix : BSM;
+    import boolean_matrix : BCV;
 
     /+
      + fwdPerm = (Um*Rm*Lm)*(Um-1*Rm-1*Lm-1)*...*(U0*R0*L0)*P
      +         = Um*(Rm*Lm*Um-1)*(Rm-1*Lm-1*Um-2)*...*(R0*L0)*P
      +         = Um*(Rm*RELm)*(Rm-1*RELm-1)*...*(R0*L0)*P
      +/
-    private BSM!N composeForwardPermutation(in ref BSM!N prevPerm, size_t rotorID)
+    private BCV!N composeForward(in ref BCV!N inputVec, size_t rotorID)
     {
         import boolean_matrix : lowerRotator, upperRotator;
 
         immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotator = x > 0 ? lowerRotator!N(x) : upperRotator!N(-x);
-        immutable composedPerm = rotors[rotorID].perm * relRotator * prevPerm;
-        return rotorID == rotorN - 1 ? upperRotator!N(rotationStates[rotorID]) * composedPerm
-            : composeForwardPermutation(composedPerm, rotorID + 1);
+        immutable composedVec = rotors[rotorID].perm * (relRotator * inputVec);
+        return rotorID == rotorN - 1 ? upperRotator!N(rotationStates[rotorID]) * composedVec
+            : composeForward(composedVec, rotorID + 1);
     }
 
+    /+
+     + bwdPerm = [(Um*Rm*Lm)*(Um-1*Rm-1*Lm-1)*...*(U0*R0*L0)*P]^-1
+     +         = [Um*(Rm*RELm)*(Rm-1*RELm-1)*...*(R0*L0)*P]^-1
+     +         = P^-1*(R0*L0)^-1*...(Rm-1*RELm-1)^-1*(Rm*RELm)^-1*Um^-1
+     +         = P^-1*(U0*R0^-1)*...(RELm-1^-1*Rm-1^-1)*(RELm^-1*Rm^-1)*Lm
+     +/
+    private BCV!N composeBackward(in ref BCV!N inputVec, size_t rotorID)
+    {
+        import boolean_matrix : lowerRotator, transpose, upperRotator;
+
+        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
+        immutable relRotatorInv = x > 0 ? upperRotator!N(x) : lowerRotator!N(-x);
+        immutable iv = rotorID == rotorN - 1 ? lowerRotator!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
+        immutable composedVec =  relRotatorInv * (rotors[rotorID].perm.transpose * iv);
+        return rotorID == 0 ? composedVec : composeBackward(composedVec, rotorID - 1);
+   }
+    
     private auto process(size_t keyInputID)
     out (r)
     {
@@ -519,18 +536,14 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
     {
         step();
 
-        import boolean_matrix : isBijective, isIrreflexive, isSymmetric, transpose, BCV;
+        import boolean_matrix : transpose, BCV;
 
-        immutable fwdPerm = composeForwardPermutation(composedInputPerm, 0);
-        // bwdPerm = fwdPerm^-1 = fwdPerm^T
-        immutable wholePerm = fwdPerm.transpose * reflector * fwdPerm;
-        assert(wholePerm.isBijective);
-        assert(wholePerm.isIrreflexive);
-        assert(wholePerm.isSymmetric);
-        immutable w = wholePerm * BCV!N.e(keyInputID);
+        immutable composedInput = composedInputPerm * BCV!N.e(keyInputID);
+        immutable reflectorOutput = reflector * composeForward(composedInput, 0);
+        immutable composedOutput = composedInputPerm.transpose * composeBackward(reflectorOutput,rotorN - 1) ;
         import std.algorithm.searching : countUntil;
 
-        immutable r = w[].countUntil!"a";
+        immutable r = composedOutput[].countUntil!"a";
         return r;
     }
 
