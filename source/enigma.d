@@ -488,6 +488,9 @@ alias EnigmaR = EnigmaD;
 /// Enigma T 'Tirpitz', which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias EnigmaT = EnigmaD;
 
+/// Enigma KD, which has three rotor slots and no plugboard. The reflector can be set to any positions.
+alias EnigmaKD = EnigmaD;
+
 /// Predefined existent rotors.
 auto rotorI(dchar ringSetting = 'A') pure
 {
@@ -665,6 +668,23 @@ auto rotorVIIIT(dchar ringSetting = 'A') pure
     return rotor("YMTPNZHWKODAJXELUQVGCBISFR", 'X', 'E', 'I', 'M', 'Q', ringSetting);
 }
 
+/// ditto
+auto rotorIKD(dchar ringSetting = 'A') pure
+{
+    return rotor("VEZIOJCXKYDUNTWAPLQGBHSFMR", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIKD(dchar ringSetting = 'A') pure
+{
+    return rotor("HGRBSJZETDLVPMQYCXAOKINFUW", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIIKD(dchar ringSetting = 'A') pure
+{
+    return rotor("NWLHXGRBYOJSAZDVTPKFQMEUIC", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
+}
 
 /++
 + Predefined existent rotors. Because these rotors have no turnover notches, they are generally set
@@ -759,6 +779,12 @@ auto reflectorR(dchar ringSetting = 'A') pure
 auto reflectorT(dchar ringSetting = 'A') pure
 {
     return reflector("GEKPBTAUMOCNILJDXZYFHWVQSR", ringSetting);
+}
+
+/// ditto
+auto reflectorFRA(dchar ringSetting = 'A') pure
+{
+    return reflector("KOTVPNLMJIAGHFBEWYXCZDQSRU", ringSetting);
 }
 
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
@@ -901,6 +927,18 @@ unittest
     assert(et3('A') == 'N');
     assert(et3('A') == 'D');
     assert(et3('A') == 'T');
+}
+
+unittest
+{
+    auto ekd = EnigmaKD(entryWheelQWE, rotorIKD, rotorIIKD, rotorIIIKD, reflectorFRA, "AAA");
+
+    assert(ekd('A') == 'W');
+    assert(ekd('A') == 'C');
+    assert(ekd('A') == 'H');
+    assert(ekd('A') == 'U');
+    assert(ekd('A') == 'G');
+    assert(ekd('A') == 'K');
 }
 
 /// Step-by-step enciphering.
