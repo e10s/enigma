@@ -265,8 +265,17 @@ body
         ringSetting.toUpper - 'A');
 }
 
+///
+enum EnigmaType : uint
+{
+    none,
+    fixedFinalRotor = 1 << 0,
+    hasPlugboard = 1 << 1,
+    settableReflectorPos = 1 << 2
+}
+
 /// Currently machines with the double-stepping mechanism are available.
-struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = true, bool settableReflectorPos = false)
+struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
 {
     import boolean_matrix : BSM;
     private immutable BSM!N composedInputPerm;
@@ -303,7 +312,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
     }
 
     ///
-    static if (settableReflectorPos)
+    static if (enigmaType & EnigmaType.settableReflectorPos)
     {
         this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
             in Reflector reflector, in dchar[rotorN] rotorStartPos,
@@ -327,7 +336,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
     }
 
     ///
-    static if (hasPlugboard)
+    static if (enigmaType & EnigmaType.hasPlugboard)
     {
         this(in Plugboard plugboard, in EntryWheel entryWheel,
             in Repeat!(rotorN, Rotor) rotors,
@@ -338,7 +347,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
         }
 
         ///
-        static if (settableReflectorPos)
+        static if (enigmaType & EnigmaType.settableReflectorPos)
         {
             this(in Plugboard plugboard, in EntryWheel entryWheel,
                 in Repeat!(rotorN, Rotor) rotors,
@@ -365,7 +374,7 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
 
     private void step()
     {
-        enum movableRotorN = fixedFinalRotor ? rotorN - 1 : rotorN;
+        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1 : rotorN;
         bool[movableRotorN] stepFlag;
 
         stepFlag[0] = true;
@@ -456,19 +465,19 @@ struct Enigma(size_t rotorN, bool fixedFinalRotor = false, bool hasPlugboard = t
 }
 
 /// Enigma I 'Wehrmacht', which has three rotor slots.
-alias EnigmaI = Enigma!3;
+alias EnigmaI = Enigma!(3, EnigmaType.hasPlugboard);
 
 /// Enigma M3, which has three rotor slots.
 alias EnigmaM3 = EnigmaI;
 
 /// Enigma M4, which has four rotor slots. The fourth rotor never rotates.
-alias EnigmaM4 = Enigma!(4, true);
+alias EnigmaM4 = Enigma!(4, EnigmaType.fixedFinalRotor | EnigmaType.hasPlugboard);
 
 /// Norway Enigma, which has three rotor slots.
 alias Norway = EnigmaI;
 
 /// Enigma D, which has three rotor slots and no plugboard. The reflector can be set to any positions.
-alias EnigmaD = Enigma!(3, false, false, true);
+alias EnigmaD = Enigma!(3, EnigmaType.settableReflectorPos);
 
 /// Swiss K, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias SwissK = EnigmaD;
@@ -904,7 +913,7 @@ unittest
     immutable rot2 = rotor("AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E', 'B');
     immutable rot3 = rotor("BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V', 'A');
 
-    auto e3 = Enigma!3(pbCI, enWh, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
+    auto e3 = Enigma!(3, EnigmaType.hasPlugboard)(pbCI, enWh, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
     assert(e3('A') == 'K');
     assert(e3('a') == 'T'); // A lowercase is automatically converted to an uppercase.
     assert(e3('5') == '5'); // A non-alphabetical character does not changes
@@ -939,7 +948,7 @@ unittest
 
     // If each machine has just one movable rotor...
     auto e1 = Enigma!1(entryWheelABC, rotorI, reflectorC /*!*/ , "X");
-    auto e2fixed = Enigma!(2, true  /*!*/ )(entryWheelABC, rotorI,
+    auto e2fixed = Enigma!(2, EnigmaType.fixedFinalRotor  /*!*/ )(entryWheelABC, rotorI,
         rotorGamma('A') /*!*/ , reflectorCThin /*!*/ , "XA" /*!*/ ); // X*A*
 
     foreach (dchar c; "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
