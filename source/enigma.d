@@ -30,75 +30,52 @@ struct Rotor
     private immutable bool hasNotch = false;
     private immutable size_t[] turnovers;
 
+    import std.meta : allSatisfy;
+    import std.traits : isIntegral;
     /++
-     + Constructs a rotor with no turnover notches.
+     + Constructs a rotor.
+     + If turnovers are not specified, the rotor has no turnover notches,
+     + otherwise, for example, if turnovers are `1` and `25`, the next rotor
+     + steps when this rotor steps from B to C and from Z to A.
      + If ringOffset is `2`, it corresponds to "C-03".
      +/
-    this()(in auto ref BSM!N perm, size_t ringOffset) pure
+    this(I...)(in auto ref BSM!N perm, I turnovers, size_t ringOffset) pure
+        if (allSatisfy!(isIntegral, I) && I.length <= N)
     in
     {
         import boolean_matrix : isBijective;
 
         assert(perm.isBijective, "Rotor must be bijective.");
+        foreach (t; turnovers)
+        {
+            assert(t >= 0, "Turnover must be positive.");
+        }
     }
     body
     {
+        import std.algorithm.iteration : map, uniq;
+        import std.algorithm.sorting : sort;
+        import std.array : array;
         import boolean_matrix : lowerRotator, upperRotator;
 
         this.perm = lowerRotator!N(ringOffset) * perm * upperRotator!N(ringOffset);
-    }
-
-    /++
-     + Constructs a rotor with one turnover notch.
-     + If turnover is `1`, the next rotor steps when this rotor steps from B to C.
-     + If ringOffset is `2`, it corresponds to "C-03".
-     +/
-    this()(in auto ref BSM!N perm, size_t turnover, size_t ringOffset) pure
-    {
-        this(perm, ringOffset);
-        this.turnovers = [turnover % N];
-        hasNotch = true;
-    }
-
-    /++
-     + Constructs a rotor with two turnover notches.
-     + If turnover1 is `1` and turnover2 is `25`, the next rotor steps
-     + when this rotor steps from B to C and from Z to A.
-     + If ringOffset is `2`, it corresponds to "C-03".
-     +/
-    this()(in auto ref BSM!N perm, size_t turnover1, size_t turnover2, size_t ringOffset) pure
-    {
-        import std.algorithm.sorting : sort;
-        import std.array : array;
-
-        this(perm, ringOffset);
-        this.turnovers = [turnover1 % N, turnover2 % N].sort().array;
-        hasNotch = true;
-    }
-
-    /++
-     + Constructs a rotor with five turnover notches.
-     + If turnover1 is `1` and turnover2 is `25`, the next rotor steps
-     + when this rotor steps from B to C and from Z to A.
-     + If ringOffset is `2`, it corresponds to "C-03".
-     +/
-    this()(in auto ref BSM!N perm, size_t turnover1, size_t turnover2, size_t turnover3, size_t turnover4, size_t turnover5, size_t ringOffset) pure
-    {
-        import std.algorithm.sorting : sort;
-        import std.array : array;
-
-        this(perm, ringOffset);
-        this.turnovers = [turnover1 % N, turnover2 % N, turnover3 % N, turnover4 % N, turnover5 % N].sort().array;
-        hasNotch = true;
+        size_t[] ts = [turnovers];
+        this.turnovers = ts.map!(a => a % N).array.sort().uniq.array.idup;
+        hasNotch = I.length > 0;
     }
 }
 
+import std.meta : allSatisfy;
+import std.traits : isSomeChar;
 /++
- + A convenience function to make a rotor with no turnover notches
- + from a forward substitution.
+ + A convenience function to make a rotor from a forward substitution.
+ + If turnovers are not specified, the rotor has no turnover notches,
+ + otherwise, for example, if  turnovers are `'B'` and `'Z'`, the next rotor
+ + steps when this rotor steps from B to C and from Z to A.
  + If ringSetting is `'C'`, it corresponds to "C-03".
  +/
-auto rotor(S)(in S forwardSubstitution, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
+auto rotor(S, C...)(in S forwardSubstitution, C turnovers, dchar ringSetting) pure
+    if (isSomeStringOrDcharRange!S && allSatisfy!(isSomeChar, C) && C.length <= N)
 in
 {
     import std.algorithm.comparison : isPermutation;
@@ -108,6 +85,10 @@ in
 
     assert(forwardSubstitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+    foreach (dchar t; turnovers)
+    {
+        assert(t.isAlpha, "Bad turnover setting.");
+    }
     assert(ringSetting.isAlpha, "Bad ring setting.");
 }
 body
@@ -117,106 +98,24 @@ body
     import std.ascii : toUpper;
     import boolean_matrix : permutation;
 
-    return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
-        ringSetting.toUpper - 'A');
-}
+    static if (C.length)
+    {
+        import std.typecons : Tuple;
+        import meta_workaround : Repeat;
 
-/++
- + A convenience function to make a rotor with one turnover notch
- + from a forward substitution.
- + If turnover is `'B'`, the next rotor steps when this rotor steps from B to C.
- + If ringSetting is `'C'`, it corresponds to "C-03".
- +/
-auto rotor(S)(in S forwardSubstitution, dchar turnover, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
-in
-{
-    import std.algorithm.comparison : isPermutation;
-    import std.algorithm.iteration : map;
-    import std.ascii : isAlpha, toUpper;
-    import std.range : iota, walkLength;
-
-    assert(forwardSubstitution.walkLength == N, "Bad length.");
-    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(turnover.isAlpha, "Bad turnover setting.");
-    assert(ringSetting.isAlpha, "Bad ring setting.");
-}
-body
-{
-    import std.algorithm.iteration : map;
-    import std.array : array;
-    import std.ascii : toUpper;
-    import boolean_matrix : permutation;
-
-    return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
-        turnover.toUpper - 'A', ringSetting.toUpper - 'A');
-}
-
-/++
- + A convenience function to make a rotor with two turnover notches
- + from a forward substitution.
- + If turnover1 is `'B'` and turnover2 is `'Z'`, the next rotor steps
- + when this rotor steps from B to C and from Z to A.
-+ If ringSetting is `'C'`, it corresponds to "C-03".
- +/
-auto rotor(S)(in S forwardSubstitution, dchar turnover1, dchar turnover2, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
-in
-{
-    import std.algorithm.comparison : isPermutation;
-    import std.algorithm.iteration : map;
-    import std.ascii : isAlpha, toUpper;
-    import std.range : iota, walkLength;
-
-    assert(forwardSubstitution.walkLength == N, "Bad length.");
-    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(turnover1.isAlpha, "Bad turnover setting.");
-    assert(turnover2.isAlpha, "Bad turnover setting.");
-    assert(ringSetting.isAlpha, "Bad ring setting.");
-}
-body
-{
-    import std.algorithm.iteration : map;
-    import std.array : array;
-    import std.ascii : toUpper;
-    import boolean_matrix : permutation;
-
-    return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
-        turnover1.toUpper - 'A', turnover2.toUpper - 'A', ringSetting.toUpper - 'A');
-}
-
-/++
- + A convenience function to make a rotor with five turnover notches
- + from a forward substitution.
- + If turnover1 is `'B'` and turnover2 is `'Z'`, the next rotor steps
- + when this rotor steps from B to C and from Z to A.
- + If ringSetting is `'C'`, it corresponds to "C-03".
- +/
-auto rotor(S)(in S forwardSubstitution, dchar turnover1, dchar turnover2, dchar turnover3, dchar turnover4, dchar turnover5, dchar ringSetting) pure if (isSomeStringOrDcharRange!S)
-in
-{
-    import std.algorithm.comparison : isPermutation;
-    import std.algorithm.iteration : map;
-    import std.ascii : isAlpha, toUpper;
-    import std.range : iota, walkLength;
-
-    assert(forwardSubstitution.walkLength == N, "Bad length.");
-    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
-    assert(turnover1.isAlpha, "Bad turnover setting.");
-    assert(turnover2.isAlpha, "Bad turnover setting.");
-    assert(turnover3.isAlpha, "Bad turnover setting.");
-    assert(turnover4.isAlpha, "Bad turnover setting.");
-    assert(turnover5.isAlpha, "Bad turnover setting.");
-    assert(ringSetting.isAlpha, "Bad ring setting.");
-}
-body
-{
-    import std.algorithm.iteration : map;
-    import std.array : array;
-    import std.ascii : toUpper;
-    import boolean_matrix : permutation;
-
-    return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
-        turnover1.toUpper - 'A', turnover2.toUpper - 'A', turnover3.toUpper - 'A',
-        turnover4.toUpper - 'A', turnover5.toUpper - 'A', ringSetting.toUpper - 'A');
+        Tuple!(Repeat!(C.length, size_t)) ts;
+        foreach (i, dchar t; turnovers)
+        {
+            ts[i] = t.toUpper - 'A';
+        }
+        return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
+            ts.expand, ringSetting.toUpper - 'A');
+    }
+    else
+    {
+        return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
+            ringSetting.toUpper - 'A');
+    }
 }
 
 ///
