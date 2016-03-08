@@ -614,36 +614,43 @@ auto rotorIT(dchar ringSetting = 'A') pure
     return rotor("KPTYUELOCVGRFQDANJMBSWHZXI", 'W', 'Z', 'E', 'K', 'Q', ringSetting);
 }
 
+/// ditto
 auto rotorIIT(dchar ringSetting = 'A') pure
 {
     return rotor("UPHZLWEQMTDJXCAKSOIGVBYFNR", 'W', 'Z', 'F', 'L', 'R', ringSetting);
 }
 
+/// ditto
 auto rotorIIIT(dchar ringSetting = 'A') pure
 {
     return rotor("QUDLYRFEKONVZAXWHMGPJBSICT", 'W', 'Z', 'E', 'K', 'Q', ringSetting);
 }
 
+/// ditto
 auto rotorIVT(dchar ringSetting = 'A') pure
 {
     return rotor("CIWTBKXNRESPFLYDAGVHQUOJZM", 'W', 'Z', 'F', 'L', 'R', ringSetting);
 }
 
+/// ditto
 auto rotorVT(dchar ringSetting = 'A') pure
 {
     return rotor("UAXGISNJBVERDYLFZWTPCKOHMQ", 'Y', 'C', 'F', 'K', 'R', ringSetting);
 }
 
+/// ditto
 auto rotorVIT(dchar ringSetting = 'A') pure
 {
     return rotor("XFUZGALVHCNYSEWQTDMRBKPIOJ", 'X', 'E', 'I', 'M', 'Q', ringSetting);
 }
 
+/// ditto
 auto rotorVIIT(dchar ringSetting = 'A') pure
 {
     return rotor("BJVFTXPLNAYOZIKWGDQERUCHSM", 'Y', 'C', 'F', 'K', 'R', ringSetting);
 }
 
+/// ditto
 auto rotorVIIIT(dchar ringSetting = 'A') pure
 {
     return rotor("YMTPNZHWKODAJXELUQVGCBISFR", 'X', 'E', 'I', 'M', 'Q', ringSetting);
