@@ -507,8 +507,8 @@ alias EnigmaT = EnigmaD;
 /// Enigma KD, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias EnigmaKD = EnigmaD;
 
-///
-alias EnigmaG312 = Enigma!(3, EnigmaType.normalStepping | EnigmaType.movableReflector);
+/// Enigma G, which has three rotor slots and no plugboard. The reflector can be set to any positions. In addition, the rotors and the reflector rotates normally (not "double stepping").
+alias EnigmaG = Enigma!(3, EnigmaType.normalStepping | EnigmaType.movableReflector);
 
 /// Predefined existent rotors.
 auto rotorI(dchar ringSetting = 'A') pure
@@ -706,6 +706,24 @@ auto rotorIIIKD(dchar ringSetting = 'A') pure
 }
 
 /// ditto
+auto rotorIG260(dchar ringSetting = 'A') pure
+{
+    return rotor("RCSPBLKQAUMHWYTIFZVGOJNEXD", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIG260(dchar ringSetting = 'A') pure
+{
+    return rotor("WCMIBVPJXAROSGNDLZKEYHUFQT", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIIG260(dchar ringSetting = 'A') pure
+{
+    return rotor("FVDHZELSQMAXOKYIWPGCBUJTNR", 'U', 'W', 'X', 'A', 'E', 'F', 'H', 'K', 'M', 'N', 'R', ringSetting);
+}
+
+/// ditto
 auto rotorIG312(dchar ringSetting = 'A') pure
 {
     return rotor("DMTWSILRUYQNKFEJCAZBPGXOHV", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
@@ -823,6 +841,9 @@ auto reflectorFRA(dchar ringSetting = 'A') pure
 {
     return reflector("KOTVPNLMJIAGHFBEWYXCZDQSRU", ringSetting);
 }
+
+/// ditto
+alias reflectorG260 = reflectorD;
 
 /// ditto
 auto reflectorG312(dchar ringSetting = 'A') pure
@@ -987,7 +1008,41 @@ unittest
 // Normal stepping and movable reflector test
 unittest
 {
-    auto eg312 = EnigmaG312(entryWheelQWE, rotorIG312, rotorIIG312('B'), rotorIIIG312, reflectorG312('Y'), "CZB", 'D');
+    auto eg260 = EnigmaG(entryWheelQWE, rotorIG260, rotorIIG260, rotorIIIG260, reflectorG260, "AAA", 'A');
+
+    assert(eg260.rotationStates == [0, 0, 0, 0]);
+
+    assert(eg260('A') == 'C');
+    assert(eg260.rotationStates == [1, 1, 1, 1]);
+
+    assert(eg260('A') == 'K');
+    assert(eg260.rotationStates == [2, 2, 1, 1]);
+
+    assert(eg260('A') == 'N');
+    assert(eg260.rotationStates == [3, 3, 2, 1]);
+
+    assert(eg260('A') == 'U');
+    assert(eg260.rotationStates == [4, 3, 2, 1]);
+
+    assert(eg260('A') == 'L');
+    assert(eg260.rotationStates == [5, 4, 3, 1]);
+
+    assert(eg260('A') == 'Q');
+    assert(eg260.rotationStates == [6, 5, 3, 1]);
+
+    assert(eg260('A') == 'Y');
+    assert(eg260.rotationStates == [7, 6, 4, 1]);
+
+    assert(eg260('A') == 'P');
+    assert(eg260.rotationStates == [8, 6, 4, 1]);
+
+    assert(eg260('A') == 'I');
+    assert(eg260.rotationStates == [9, 7, 5, 2]);
+}
+
+unittest
+{
+    auto eg312 = EnigmaG(entryWheelQWE, rotorIG312, rotorIIG312('B'), rotorIIIG312, reflectorG312('Y'), "CZB", 'D');
 
     assert(eg312.rotationStates == [2, 25, 1, 3]);
 
