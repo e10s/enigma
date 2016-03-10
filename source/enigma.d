@@ -271,17 +271,19 @@ enum EnigmaType : uint
     none,
     fixedFinalRotor = 1 << 0,
     hasPlugboard = 1 << 1,
-    settableReflectorPos = 1 << 2
+    settableReflectorPos = 1 << 2,
+    normalStepping = 1 << 3,
+    movableReflector = 1 << 4
 }
 
-/// Currently machines with the double-stepping mechanism are available.
+///
 struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
 {
     import boolean_matrix : BSM;
     private immutable BSM!N composedInputPerm;
     private immutable Rotor[rotorN] rotors;
     private immutable BSM!N reflector;
-    private size_t[rotorN] rotationStates;
+    private size_t[rotorN + 1] rotationStates;
 
     import meta_workaround : Repeat;
 
@@ -299,11 +301,11 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
     }
     body
     {
-        foreach (i, ref e; rotationStates)
+        foreach (i, ref e; rotorStartPos)
         {
             import std.ascii : toUpper;
 
-            e = rotorStartPos[i].toUpper - 'A';
+            rotationStates[i] = e.toUpper - 'A';
         }
 
         this.composedInputPerm = cast(immutable) entryWheel.perm;
@@ -312,7 +314,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
     }
 
     ///
-    static if (enigmaType & EnigmaType.settableReflectorPos)
+    static if (enigmaType & EnigmaType.settableReflectorPos || enigmaType & EnigmaType.movableReflector)
     {
         this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
             in Reflector reflector, in dchar[rotorN] rotorStartPos,
@@ -330,8 +332,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
             import std.ascii : toUpper;
             import boolean_matrix : lowerRotator, upperRotator;
 
-            immutable refOffset = reflectorPos.toUpper - 'A';
-            this.reflector = upperRotator!N(refOffset) * reflector * lowerRotator!N(refOffset);
+            rotationStates[$ - 1] = reflectorPos.toUpper - 'A';
         }
     }
 
@@ -347,7 +348,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
         }
 
         ///
-        static if (enigmaType & EnigmaType.settableReflectorPos)
+        static if (enigmaType & EnigmaType.settableReflectorPos || enigmaType & EnigmaType.movableReflector)
         {
             this(in Plugboard plugboard, in EntryWheel entryWheel,
                 in Repeat!(rotorN, Rotor) rotors,
@@ -366,20 +367,19 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
                 import std.ascii : toUpper;
                 import boolean_matrix : lowerRotator, upperRotator;
 
-                immutable refOffset = reflectorPos.toUpper - 'A';
-                this.reflector = upperRotator!N(refOffset) * reflector * lowerRotator!N(refOffset);
+                rotationStates[$ - 1] = reflectorPos.toUpper - 'A';
             }
         }
     }
 
     private void step()
     {
-        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1 : rotorN;
+        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1 :
+            (enigmaType & EnigmaType.movableReflector) ? rotorN + 1 : rotorN;
         bool[movableRotorN] stepFlag;
 
         stepFlag[0] = true;
 
-        // Handles double stepping
         foreach (rotorID; 0 .. movableRotorN - 1)
         {
             import std.algorithm.searching : canFind;
@@ -389,6 +389,10 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
                 stepFlag[rotorID] = true;
                 stepFlag[rotorID + 1] = true;
             }
+            else static if (enigmaType & EnigmaType.normalStepping)
+            {
+                break;
+            }
         }
 
         foreach (rotorID, e; stepFlag)
@@ -396,6 +400,10 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
             if (e)
             {
                 rotationStates[rotorID] = (rotationStates[rotorID] + 1) % N;
+            }
+            else static if (enigmaType & EnigmaType.normalStepping)
+            {
+                break;
             }
         }
     }
@@ -433,8 +441,16 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
         immutable iv = rotorID == rotorN - 1 ? lowerRotator!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
         immutable composedVec =  relRotatorInv * (rotors[rotorID].perm.transpose * iv);
         return rotorID == 0 ? composedVec : composeBackward(composedVec, rotorID - 1);
-   }
-    
+    }
+
+    // Unless the reflector is movable, the return value is constant.
+    private auto composedReflector() @property
+    {
+        import boolean_matrix : lowerRotator, upperRotator;
+
+        return upperRotator!N(rotationStates[$ - 1]) * reflector * lowerRotator!N(rotationStates[$ - 1]);
+    }
+
     private auto process(size_t keyInputID)
     out (r)
     {
@@ -447,7 +463,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
         import boolean_matrix : transpose, BCV;
 
         immutable composedInput = composedInputPerm * BCV!N.e(keyInputID);
-        immutable reflectorOutput = reflector * composeForward(composedInput, 0);
+        immutable reflectorOutput = composedReflector * composeForward(composedInput, 0);
         immutable composedOutput = composedInputPerm.transpose * composeBackward(reflectorOutput,rotorN - 1) ;
         import std.algorithm.searching : countUntil;
 
@@ -490,6 +506,9 @@ alias EnigmaT = EnigmaD;
 
 /// Enigma KD, which has three rotor slots and no plugboard. The reflector can be set to any positions.
 alias EnigmaKD = EnigmaD;
+
+///
+alias EnigmaG312 = Enigma!(3, EnigmaType.normalStepping | EnigmaType.movableReflector);
 
 /// Predefined existent rotors.
 auto rotorI(dchar ringSetting = 'A') pure
@@ -686,6 +705,24 @@ auto rotorIIIKD(dchar ringSetting = 'A') pure
     return rotor("NWLHXGRBYOJSAZDVTPKFQMEUIC", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
 }
 
+/// ditto
+auto rotorIG312(dchar ringSetting = 'A') pure
+{
+    return rotor("DMTWSILRUYQNKFEJCAZBPGXOHV", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIG312(dchar ringSetting = 'A') pure
+{
+    return rotor("HQZGPJTMOBLNCIFDYAWVEUSRKX", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIIG312(dchar ringSetting = 'A') pure
+{
+    return rotor("UQNTLSZFMREHDPXKIBVYGJCWOA", 'U', 'W', 'X', 'A', 'E', 'F', 'H', 'K', 'M', 'N', 'R', ringSetting);
+}
+
 /++
 + Predefined existent rotors. Because these rotors have no turnover notches, they are generally set
 + side by side with a reflector.
@@ -787,30 +824,36 @@ auto reflectorFRA(dchar ringSetting = 'A') pure
     return reflector("KOTVPNLMJIAGHFBEWYXCZDQSRU", ringSetting);
 }
 
+/// ditto
+auto reflectorG312(dchar ringSetting = 'A') pure
+{
+    return reflector("RULQMZJSYGOCETKWDAHNBXPVIF", ringSetting);
+}
+
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
 unittest
 {
     auto m3 = EnigmaM3(plugboardDoNothing, entryWheelABC, rotorI, rotorII, rotorIII, reflectorB, "ODA");
 
-    assert(m3.rotationStates == [14, 3, 0]);
+    assert(m3.rotationStates == [14, 3, 0, 0]);
 
     assert(m3('A') == 'H');
-    assert(m3.rotationStates == [15, 3, 0]);
+    assert(m3.rotationStates == [15, 3, 0, 0]);
 
     assert(m3('A') == 'D');
-    assert(m3.rotationStates == [16, 3, 0]);
+    assert(m3.rotationStates == [16, 3, 0, 0]);
 
     assert(m3('A') == 'Z');
-    assert(m3.rotationStates == [17, 4, 0]);
+    assert(m3.rotationStates == [17, 4, 0, 0]);
 
     assert(m3('A') == 'G');
-    assert(m3.rotationStates == [18, 5, 1]);
+    assert(m3.rotationStates == [18, 5, 1, 0]);
 
     assert(m3('A') == 'O');
-    assert(m3.rotationStates == [19, 5, 1]);
+    assert(m3.rotationStates == [19, 5, 1, 0]);
 
     assert(m3('A') == 'V');
-    assert(m3.rotationStates == [20, 5, 1]);
+    assert(m3.rotationStates == [20, 5, 1, 0]);
 }
 
 // The noches are fixed to the ring.
@@ -818,49 +861,49 @@ unittest
 {
     auto ed = EnigmaD(entryWheelQWE, rotorID, rotorIID, rotorIIID, reflectorD, "UDN" /*!*/ , 'B');
 
-    assert(ed.rotationStates == [20, 3, 13]);
+    assert(ed.rotationStates == [20, 3, 13, 1]);
 
     assert(ed('A') == 'Z');
-    assert(ed.rotationStates == [21, 3, 13]);
+    assert(ed.rotationStates == [21, 3, 13, 1]);
 
     assert(ed('A') == 'D');
-    assert(ed.rotationStates == [22, 3, 13]);
+    assert(ed.rotationStates == [22, 3, 13, 1]);
 
     assert(ed('A') == 'V');
-    assert(ed.rotationStates == [23, 3, 13]);
+    assert(ed.rotationStates == [23, 3, 13, 1]);
 
     assert(ed('A') == 'I');
-    assert(ed.rotationStates == [24, 3, 13]);
+    assert(ed.rotationStates == [24, 3, 13, 1]);
 
     assert(ed('A') == 'C');
-    assert(ed.rotationStates == [25, 4, 13]);
+    assert(ed.rotationStates == [25, 4, 13, 1]);
 
     assert(ed('A') == 'Z');
-    assert(ed.rotationStates == [0, 5, 14]);
+    assert(ed.rotationStates == [0, 5, 14, 1]);
 
 
     // The K's rotor positions are same as the D's.
     auto sk = SwissK(entryWheelQWE, rotorIK('Z'), rotorIIK('Y'), rotorIIIK, reflectorK('E'), "UDN" /*!*/ , 'X');
 
-    assert(sk.rotationStates == [20, 3, 13]);
+    assert(sk.rotationStates == [20, 3, 13, 23]);
 
     assert(sk('A') == 'Y');
-    assert(sk.rotationStates == [21, 3, 13]);
+    assert(sk.rotationStates == [21, 3, 13, 23]);
 
     assert(sk('A') == 'H');
-    assert(sk.rotationStates == [22, 3, 13]);
+    assert(sk.rotationStates == [22, 3, 13, 23]);
 
     assert(sk('A') == 'U');
-    assert(sk.rotationStates == [23, 3, 13]);
+    assert(sk.rotationStates == [23, 3, 13, 23]);
 
     assert(sk('A') == 'M');
-    assert(sk.rotationStates == [24, 3, 13]);
+    assert(sk.rotationStates == [24, 3, 13, 23]);
 
     assert(sk('A') == 'V');
-    assert(sk.rotationStates == [25, 4, 13]);
+    assert(sk.rotationStates == [25, 4, 13, 23]);
 
     assert(sk('A') == 'Q');
-    assert(sk.rotationStates == [0, 5, 14]);
+    assert(sk.rotationStates == [0, 5, 14, 23]);
 }
 
 unittest
@@ -939,6 +982,35 @@ unittest
     assert(ekd('A') == 'U');
     assert(ekd('A') == 'G');
     assert(ekd('A') == 'K');
+}
+
+// Normal stepping and movable reflector test
+unittest
+{
+    auto eg312 = EnigmaG312(entryWheelQWE, rotorIG312, rotorIIG312('B'), rotorIIIG312, reflectorG312('Y'), "CZB", 'D');
+
+    assert(eg312.rotationStates == [2, 25, 1, 3]);
+
+    assert(eg312('A') == 'J');
+    assert(eg312.rotationStates == [3, 0, 2, 3]);
+
+    assert(eg312('A') == 'B');
+    assert(eg312.rotationStates == [4, 0, 2, 3]);
+
+    assert(eg312('A') == 'X');
+    assert(eg312.rotationStates == [5, 1, 3, 3]);
+
+    assert(eg312('A') == 'K');
+    assert(eg312.rotationStates == [6, 2, 3, 3]);
+
+    assert(eg312('A') == 'N');
+    assert(eg312.rotationStates == [7, 3, 4, 3]);
+
+    assert(eg312('A') == 'N');
+    assert(eg312.rotationStates == [8, 3, 4, 3]);
+
+    assert(eg312('A') == 'C');
+    assert(eg312.rotationStates == [9, 4, 5, 4]);
 }
 
 /// Step-by-step enciphering.
