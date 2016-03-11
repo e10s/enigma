@@ -314,62 +314,52 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
     }
 
     ///
-    static if (enigmaType & EnigmaType.settableReflectorPos || enigmaType & EnigmaType.movableReflector)
+    this()(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
+            in Reflector reflector, in dchar[rotorN] rotorStartPos, dchar reflectorPos)
+            if (enigmaType & EnigmaType.settableReflectorPos
+                || enigmaType & EnigmaType.movableReflector)
+    in
     {
-        this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
-            in Reflector reflector, in dchar[rotorN] rotorStartPos,
-            dchar reflectorPos)
-        in
-        {
-            import std.ascii : isAlpha;
+        import std.ascii : isAlpha;
 
-            assert(reflectorPos.isAlpha, "Bad reflector position.");
-        }
-        body
-        {
-            this(entryWheel, rotors, reflector, rotorStartPos);
+        assert(reflectorPos.isAlpha, "Bad reflector position.");
+    }
+    body
+    {
+        this(entryWheel, rotors, reflector, rotorStartPos);
 
-            import std.ascii : toUpper;
-            import boolean_matrix : lowerRotator, upperRotator;
+        import std.ascii : toUpper;
 
-            rotationStates[$ - 1] = reflectorPos.toUpper - 'A';
-        }
+        rotationStates[$ - 1] = reflectorPos.toUpper - 'A';
     }
 
     ///
-    static if (enigmaType & EnigmaType.hasPlugboard)
+    this()(in Plugboard plugboard, in EntryWheel entryWheel, in Repeat!(rotorN,
+            Rotor) rotors, in Reflector reflector, in dchar[rotorN] rotorStartPos)
+            if (enigmaType & EnigmaType.hasPlugboard)
     {
-        this(in Plugboard plugboard, in EntryWheel entryWheel,
-            in Repeat!(rotorN, Rotor) rotors,
-            in Reflector reflector, in dchar[rotorN] rotorStartPos)
-        {
-            this(entryWheel, rotors, reflector, rotorStartPos);
-            this.composedInputPerm = cast(immutable) (entryWheel * plugboard);
-        }
+        this(entryWheel, rotors, reflector, rotorStartPos);
+        this.composedInputPerm = cast(immutable)(entryWheel * plugboard);
+    }
 
-        ///
-        static if (enigmaType & EnigmaType.settableReflectorPos || enigmaType & EnigmaType.movableReflector)
-        {
-            this(in Plugboard plugboard, in EntryWheel entryWheel,
-                in Repeat!(rotorN, Rotor) rotors,
-                in Reflector reflector, in dchar[rotorN] rotorStartPos,
-                dchar reflectorPos)
-            in
-            {
-                import std.ascii : isAlpha;
+    ///
+    this()(in Plugboard plugboard, in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
+            in Reflector reflector, in dchar[rotorN] rotorStartPos, dchar reflectorPos)
+            if (enigmaType & EnigmaType.hasPlugboard && (enigmaType & EnigmaType.settableReflectorPos
+                || enigmaType & EnigmaType.movableReflector))
+    in
+    {
+        import std.ascii : isAlpha;
 
-                assert(reflectorPos.isAlpha, "Bad reflector position.");
-            }
-            body
-            {
-                this(plugboard, entryWheel, rotors, reflector, rotorStartPos);
+        assert(reflectorPos.isAlpha, "Bad reflector position.");
+    }
+    body
+    {
+        this(plugboard, entryWheel, rotors, reflector, rotorStartPos);
 
-                import std.ascii : toUpper;
-                import boolean_matrix : lowerRotator, upperRotator;
+        import std.ascii : toUpper;
 
-                rotationStates[$ - 1] = reflectorPos.toUpper - 'A';
-            }
-        }
+        rotationStates[$ - 1] = reflectorPos.toUpper - 'A';
     }
 
     private void step()
