@@ -731,6 +731,24 @@ auto rotorIIIG312(dchar ringSetting = 'A') pure
     return rotor("UQNTLSZFMREHDPXKIBVYGJCWOA", 'U', 'W', 'X', 'A', 'E', 'F', 'H', 'K', 'M', 'N', 'R', ringSetting);
 }
 
+/// ditto
+auto rotorIG111(dchar ringSetting = 'A') pure
+{
+    return rotor("WLRHBQUNDKJCZSEXOTMAGYFPVI", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorIIG111(dchar ringSetting = 'A') pure
+{
+    return rotor("TFJQAZWMHLCUIXRDYGOEVBNSKP", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+}
+
+/// ditto
+auto rotorVG111(dchar ringSetting = 'A') pure
+{
+    return rotor("QTPIXWVDFRMUSLJOHCANEZKYBG", 'S', 'W', 'Z', 'F', 'H', 'M', 'Q', ringSetting);
+}
+
 /++
 + Predefined existent rotors. Because these rotors have no turnover notches, they are generally set
 + side by side with a reflector.
@@ -840,6 +858,9 @@ auto reflectorG312(dchar ringSetting = 'A') pure
 {
     return reflector("RULQMZJSYGOCETKWDAHNBXPVIF", ringSetting);
 }
+
+/// ditto
+alias reflectorG111 = reflectorD;
 
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
 unittest
@@ -1056,6 +1077,40 @@ unittest
 
     assert(eg312('A') == 'C');
     assert(eg312.rotationStates == [9, 4, 5, 4]);
+}
+
+unittest
+{
+    auto eg111 = EnigmaG(entryWheelQWE, rotorIG111, rotorVG111, rotorIIG111, reflectorG111, "AAA", 'A');
+
+    assert(eg111.rotationStates == [0, 0, 0, 0]);
+
+    assert(eg111('A') == 'E');
+    assert(eg111.rotationStates == [1, 1, 0, 0]);
+
+    assert(eg111('A') == 'L');
+    assert(eg111.rotationStates == [2, 2, 0, 0]);
+
+    assert(eg111('A') == 'U');
+    assert(eg111.rotationStates == [3, 3, 0, 0]);
+
+    assert(eg111('A') == 'X');
+    assert(eg111.rotationStates == [4, 3, 0, 0]);
+
+    assert(eg111('A') == 'L');
+    assert(eg111.rotationStates == [5, 4, 0, 0]);
+
+    assert(eg111('A') == 'U');
+    assert(eg111.rotationStates == [6, 5, 0, 0]);
+
+    assert(eg111('A') == 'P');
+    assert(eg111.rotationStates == [7, 6, 1, 1]);
+
+    assert(eg111('A') == 'E');
+    assert(eg111.rotationStates == [8, 6, 1, 1]);
+
+    assert(eg111('A') == 'Q');
+    assert(eg111.rotationStates == [9, 7, 1, 1]);
 }
 
 /// Step-by-step enciphering.
