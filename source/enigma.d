@@ -268,16 +268,22 @@ body
 ///
 enum EnigmaType : uint
 {
+    ///
     none,
-    fixedFinalRotor = 1 << 0,
-    hasPlugboard = 1 << 1,
-    settableReflectorPos = 1 << 2,
-    normalStepping = 1 << 3,
+    /// No double stepping.
+    gearDrive = 1 << 0,
+    ///
+    plugboard = 1 << 1,
+    ///
+    fixedFinalRotor = 1 << 2,
+    ///
+    settableReflectorPos = 1 << 3,
+    ///
     movableReflector = 1 << 4
 }
 
 ///
-struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
+struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 {
     import boolean_matrix : BSM;
     private immutable BSM!N composedInputPerm;
@@ -336,7 +342,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
     ///
     this()(in Plugboard plugboard, in EntryWheel entryWheel, in Repeat!(rotorN,
             Rotor) rotors, in Reflector reflector, in dchar[rotorN] rotorStartPos)
-            if (enigmaType & EnigmaType.hasPlugboard)
+            if (enigmaType & EnigmaType.plugboard)
     {
         this(entryWheel, rotors, reflector, rotorStartPos);
         this.composedInputPerm = cast(immutable)(entryWheel * plugboard);
@@ -345,7 +351,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
     ///
     this()(in Plugboard plugboard, in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
             in Reflector reflector, in dchar[rotorN] rotorStartPos, dchar reflectorPos)
-            if (enigmaType & EnigmaType.hasPlugboard && (enigmaType & EnigmaType.settableReflectorPos
+            if (enigmaType & EnigmaType.plugboard && (enigmaType & EnigmaType.settableReflectorPos
                 || enigmaType & EnigmaType.movableReflector))
     in
     {
@@ -379,7 +385,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
                 stepFlag[rotorID] = true;
                 stepFlag[rotorID + 1] = true;
             }
-            else static if (enigmaType & EnigmaType.normalStepping)
+            else static if (enigmaType & EnigmaType.gearDrive)
             {
                 break;
             }
@@ -391,7 +397,7 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
             {
                 rotationStates[rotorID] = (rotationStates[rotorID] + 1) % N;
             }
-            else static if (enigmaType & EnigmaType.normalStepping)
+            else static if (enigmaType & EnigmaType.gearDrive)
             {
                 break;
             }
@@ -471,13 +477,13 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
 }
 
 /// Enigma I 'Wehrmacht', which has three rotor slots.
-alias EnigmaI = Enigma!(3, EnigmaType.hasPlugboard);
+alias EnigmaI = Enigma!(3, EnigmaType.plugboard);
 
 /// Enigma M3, which has three rotor slots.
 alias EnigmaM3 = EnigmaI;
 
 /// Enigma M4, which has four rotor slots. The fourth rotor never rotates.
-alias EnigmaM4 = Enigma!(4, EnigmaType.fixedFinalRotor | EnigmaType.hasPlugboard);
+alias EnigmaM4 = Enigma!(4, EnigmaType.fixedFinalRotor | EnigmaType.plugboard);
 
 /// Norway Enigma, which has three rotor slots.
 alias Norway = EnigmaI;
@@ -498,7 +504,7 @@ alias EnigmaT = EnigmaD;
 alias EnigmaKD = EnigmaD;
 
 /// Enigma A28, which has three rotor slots and no plugboard. The reflector can be set to any positions. In addition, the rotors and the reflector rotates normally (not "double stepping").
-alias EnigmaA28 = Enigma!(3, EnigmaType.normalStepping | EnigmaType.movableReflector);
+alias EnigmaA28 = Enigma!(3, EnigmaType.gearDrive | EnigmaType.movableReflector);
 
 /// Enigma G, which has three rotor slots and no plugboard. The reflector can be set to any positions. In addition, the rotors and the reflector rotates normally (not "double stepping").
 alias EnigmaG = EnigmaA28;
@@ -1181,7 +1187,7 @@ unittest
     immutable rot2 = rotor("AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E', 'B');
     immutable rot3 = rotor("BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V', 'A');
 
-    auto e3 = Enigma!(3, EnigmaType.hasPlugboard)(pbCI, enWh, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
+    auto e3 = Enigma!(3, EnigmaType.plugboard)(pbCI, enWh, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
     assert(e3('A') == 'K');
     assert(e3('a') == 'T'); // A lowercase is automatically converted to an uppercase.
     assert(e3('5') == '5'); // A non-alphabetical character does not changes
