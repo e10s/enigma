@@ -252,37 +252,7 @@ unittest
     assert(!isSymmetric(b));
 }
 
-auto lowerRotator(size_t n)(size_t shift) @property pure
-{
-    BSM!n r;
-    if (shift % n == 0)
-    {
-        r = BSM!n.I;
-    }
-    else
-    {
-        foreach (i, ref e; r)
-        {
-            e[(i + n - (shift % n)) % n] = true;
-        }
-    }
-    return r;
-}
-
-unittest
-{
-    immutable a = BSM!3([[true, false, false], [false, true, false],
-        [false, false, true]]);
-    immutable b = BSM!3([[false, false, true], [true, false, false],
-        [false, true, false]]);
-
-    assert(lowerRotator!3(0) == a);
-    assert(lowerRotator!3(21) == a);
-    assert(lowerRotator!3(1) == b);
-    assert(lowerRotator!3(22) == b);
-}
-
-auto upperRotator(size_t n)(size_t shift) @property pure
+auto cyclicPermutation(size_t n)(size_t shift) @property pure
 {
     BSM!n r;
     if (shift % n == 0)
@@ -306,10 +276,40 @@ unittest
     immutable b = BSM!3([[false, true, false], [false, false, true],
         [true, false, false]]);
 
-    assert(upperRotator!3(0) == a);
-    assert(upperRotator!3(21) == a);
-    assert(upperRotator!3(1) == b);
-    assert(upperRotator!3(22) == b);
+    assert(cyclicPermutation!3(0) == a);
+    assert(cyclicPermutation!3(21) == a);
+    assert(cyclicPermutation!3(1) == b);
+    assert(cyclicPermutation!3(22) == b);
+}
+
+auto cyclicPermutationInv(size_t n)(size_t shift) @property pure
+{
+    BSM!n r;
+    if (shift % n == 0)
+    {
+        r = BSM!n.I;
+    }
+    else
+    {
+        foreach (i, ref e; r)
+        {
+            e[(i + n - (shift % n)) % n] = true;
+        }
+    }
+    return r;
+}
+
+unittest
+{
+    immutable a = BSM!3([[true, false, false], [false, true, false],
+        [false, false, true]]);
+    immutable b = BSM!3([[false, false, true], [true, false, false],
+        [false, true, false]]);
+
+    assert(cyclicPermutationInv!3(0) == a);
+    assert(cyclicPermutationInv!3(21) == a);
+    assert(cyclicPermutationInv!3(1) == b);
+    assert(cyclicPermutationInv!3(22) == b);
 }
 
 auto permutation(size_t N)(in size_t[] substitution)

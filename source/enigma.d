@@ -56,9 +56,9 @@ struct Rotor
         import std.algorithm.iteration : map, uniq;
         import std.algorithm.sorting : sort;
         import std.array : array;
-        import boolean_matrix : lowerRotator, upperRotator;
+        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
 
-        this.perm = lowerRotator!N(ringOffset) * perm * upperRotator!N(ringOffset);
+        this.perm = cyclicPermutationInv!N(ringOffset) * perm * cyclicPermutation!N(ringOffset);
         size_t[] ts = [turnovers];
         this.turnovers = ts.map!(a => a % N).array.sort().uniq.array.idup;
         hasNotch = I.length > 0;
@@ -229,9 +229,9 @@ struct Reflector
     }
     body
     {
-        import boolean_matrix : lowerRotator, upperRotator;
+        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
 
-        this.perm = lowerRotator!N(ringOffset) * perm * upperRotator!N(ringOffset);
+        this.perm = cyclicPermutationInv!N(ringOffset) * perm * cyclicPermutation!N(ringOffset);
     }
 
     alias perm this;
@@ -407,12 +407,12 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
      +/
     private BCV!N composeForward(in ref BCV!N inputVec, size_t rotorID)
     {
-        import boolean_matrix : lowerRotator, upperRotator;
+        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
 
         immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
-        immutable relRotator = x > 0 ? lowerRotator!N(x) : upperRotator!N(-x);
+        immutable relRotator = x > 0 ? cyclicPermutationInv!N(x) : cyclicPermutation!N(-x);
         immutable composedVec = rotors[rotorID].perm * (relRotator * inputVec);
-        return rotorID == rotorN - 1 ? upperRotator!N(rotationStates[rotorID]) * composedVec
+        return rotorID == rotorN - 1 ? cyclicPermutation!N(rotationStates[rotorID]) * composedVec
             : composeForward(composedVec, rotorID + 1);
     }
 
@@ -424,11 +424,11 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
      +/
     private BCV!N composeBackward(in ref BCV!N inputVec, size_t rotorID)
     {
-        import boolean_matrix : lowerRotator, transpose, upperRotator;
+        import boolean_matrix : cyclicPermutation, cyclicPermutationInv, transpose;
 
         immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
-        immutable relRotatorInv = x > 0 ? upperRotator!N(x) : lowerRotator!N(-x);
-        immutable iv = rotorID == rotorN - 1 ? lowerRotator!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
+        immutable relRotatorInv = x > 0 ? cyclicPermutation!N(x) : cyclicPermutationInv!N(-x);
+        immutable iv = rotorID == rotorN - 1 ? cyclicPermutationInv!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
         immutable composedVec =  relRotatorInv * (rotors[rotorID].perm.transpose * iv);
         return rotorID == 0 ? composedVec : composeBackward(composedVec, rotorID - 1);
     }
@@ -436,9 +436,9 @@ struct Enigma(size_t rotorN, uint enigmaType = EnigmaType.none)
     // Unless the reflector is movable, the return value is constant.
     private auto composedReflector() @property
     {
-        import boolean_matrix : lowerRotator, upperRotator;
+        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
 
-        return upperRotator!N(rotationStates[$ - 1]) * reflector * lowerRotator!N(rotationStates[$ - 1]);
+        return cyclicPermutation!N(rotationStates[$ - 1]) * reflector * cyclicPermutationInv!N(rotationStates[$ - 1]);
     }
 
     private auto process(size_t keyInputID)
