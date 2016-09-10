@@ -108,12 +108,12 @@ body
         {
             ts[i] = t.toUpper - 'A';
         }
-        return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
+        return Rotor(forwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
             ts.expand, ringSetting.toUpper - 'A');
     }
     else
     {
-        return Rotor(forwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N,
+        return Rotor(forwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
             ringSetting.toUpper - 'A');
     }
 }
@@ -161,7 +161,7 @@ body
     import std.ascii : toUpper;
     import boolean_matrix : permutation, transpose;
 
-    return EntryWheel(backwardSubstitution.map!toUpper.map!"a-'A'".array.permutation!N.transpose);
+    return EntryWheel(backwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N.transpose);
 }
 
 ///
@@ -208,7 +208,7 @@ body
     import std.ascii : toUpper;
     import boolean_matrix : permutation;
 
-    return Plugboard(substitution.map!toUpper.map!"a-'A'".array.permutation!N);
+    return Plugboard(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N);
 }
 
 ///
@@ -261,7 +261,7 @@ body
     import std.ascii : toUpper;
     import boolean_matrix : permutation;
 
-    return Reflector(substitution.map!toUpper.map!"a-'A'".array.permutation!N,
+    return Reflector(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
         ringSetting.toUpper - 'A');
 }
 
@@ -472,7 +472,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import std.ascii : isAlpha, toUpper;
 
-        return keyInput.isAlpha ? process(keyInput.toUpper - 'A') + 'A' : keyInput;
+        return keyInput.isAlpha ? cast(dchar)process(keyInput.toUpper - 'A') + 'A' : keyInput;
     }
 }
 
