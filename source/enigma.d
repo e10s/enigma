@@ -51,7 +51,7 @@ struct Rotor
             assert(t >= 0, "Turnover must be positive.");
         }
     }
-    body
+    do
     {
         import std.algorithm.iteration : map, uniq;
         import std.algorithm.sorting : sort;
@@ -91,7 +91,7 @@ in
     }
     assert(ringSetting.isAlpha, "Bad ring setting.");
 }
-body
+do
 {
     import std.algorithm.iteration : map;
     import std.array : array;
@@ -132,7 +132,7 @@ struct EntryWheel
 
         assert(perm.isBijective, "Entry wheel must be bijective.");
     }
-    body
+    do
     {
         this.perm = cast(immutable) perm;
     }
@@ -154,7 +154,7 @@ in
     assert(backwardSubstitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(backwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
 }
-body
+do
 {
     import std.algorithm.iteration : map;
     import std.array : array;
@@ -179,7 +179,7 @@ struct Plugboard
         assert(perm.isBijective, "Plugboard must be bijective.");
         assert(perm.isSymmetric, "Plugboard must be symmetric.");
     }
-    body
+    do
     {
         this.perm = cast(immutable) perm;
     }
@@ -201,7 +201,7 @@ in
     assert(substitution.walkLength == N, "Bad length.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
 }
-body
+do
 {
     import std.algorithm.iteration : map;
     import std.array : array;
@@ -227,7 +227,7 @@ struct Reflector
         assert(perm.isIrreflexive, "Reflector must be irreflexive.");
         assert(perm.isSymmetric, "Reflector must be bijective.");
     }
-    body
+    do
     {
         import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
 
@@ -254,7 +254,7 @@ in
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(ringSetting.isAlpha, "Bad ring setting.");
 }
-body
+do
 {
     import std.algorithm.iteration : map;
     import std.array : array;
@@ -305,7 +305,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
             assert(c.isAlpha, "Bad start position.");
         }
     }
-    body
+    do
     {
         foreach (i, ref e; rotorStartPos)
         {
@@ -330,7 +330,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
         assert(reflectorPos.isAlpha, "Bad reflector position.");
     }
-    body
+    do
     {
         this(entryWheel, rotors, reflector, rotorStartPos);
 
@@ -359,7 +359,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
         assert(reflectorPos.isAlpha, "Bad reflector position.");
     }
-    body
+    do
     {
         this(plugboard, entryWheel, rotors, reflector, rotorStartPos);
 
@@ -452,7 +452,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         assert(r >= 0);
     }
-    body
+    do
     {
         step();
 

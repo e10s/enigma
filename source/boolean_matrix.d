@@ -84,7 +84,7 @@ struct BCV(size_t n) if (n > 0)
     {
         assert(k < n);
     }
-    body
+    do
     {
         BCV!n v;
         v[k] = true;
@@ -320,7 +320,7 @@ in
 
     assert(N.iota.isPermutation(substitution));
 }
-body
+do
 {
     BSM!N p;
     foreach (i, s; substitution)
