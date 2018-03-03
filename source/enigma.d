@@ -100,8 +100,8 @@ do
 
     static if (C.length)
     {
+        import std.meta : Repeat;
         import std.typecons : Tuple;
-        import meta_workaround : Repeat;
 
         Tuple!(Repeat!(C.length, size_t)) ts;
         foreach (i, dchar t; turnovers)
@@ -291,7 +291,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     private immutable BSM!N reflector;
     private size_t[rotorN + 1] rotationStates;
 
-    import meta_workaround : Repeat;
+    import std.meta : Repeat;
 
     ///
     this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
