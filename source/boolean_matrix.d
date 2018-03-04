@@ -1,5 +1,5 @@
 /*
-Copyright electrolysis 2016.
+Copyright Kazuya Takahashi 2016-2018.
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 */
@@ -250,96 +250,4 @@ unittest
 
     assert(isSymmetric(a));
     assert(!isSymmetric(b));
-}
-
-auto cyclicPermutation(size_t n)(size_t shift) @property pure
-{
-    BSM!n r;
-    if (shift % n == 0)
-    {
-        r = BSM!n.I;
-    }
-    else
-    {
-        foreach (i, ref e; r)
-        {
-            e[(i + (shift % n)) % n] = true;
-        }
-    }
-    return r;
-}
-
-unittest
-{
-    immutable a = BSM!3([[true, false, false], [false, true, false],
-        [false, false, true]]);
-    immutable b = BSM!3([[false, true, false], [false, false, true],
-        [true, false, false]]);
-
-    assert(cyclicPermutation!3(0) == a);
-    assert(cyclicPermutation!3(21) == a);
-    assert(cyclicPermutation!3(1) == b);
-    assert(cyclicPermutation!3(22) == b);
-}
-
-auto cyclicPermutationInv(size_t n)(size_t shift) @property pure
-{
-    BSM!n r;
-    if (shift % n == 0)
-    {
-        r = BSM!n.I;
-    }
-    else
-    {
-        foreach (i, ref e; r)
-        {
-            e[(i + n - (shift % n)) % n] = true;
-        }
-    }
-    return r;
-}
-
-unittest
-{
-    immutable a = BSM!3([[true, false, false], [false, true, false],
-        [false, false, true]]);
-    immutable b = BSM!3([[false, false, true], [true, false, false],
-        [false, true, false]]);
-
-    assert(cyclicPermutationInv!3(0) == a);
-    assert(cyclicPermutationInv!3(21) == a);
-    assert(cyclicPermutationInv!3(1) == b);
-    assert(cyclicPermutationInv!3(22) == b);
-}
-
-auto permutation(size_t N)(in size_t[] substitution)
-in
-{
-    import std.algorithm.comparison : isPermutation;
-    import std.range : iota;
-
-    assert(N.iota.isPermutation(substitution));
-}
-do
-{
-    BSM!N p;
-    foreach (i, s; substitution)
-    {
-        p[s][i] = true;
-    }
-    return p;
-}
-
-unittest
-{
-    immutable a = BSM!3([[true, false, false], [false, true, false],
-        [false, false, true]]);
-    immutable b = BSM!3([[false, true, false], [false, false, true],
-        [true, false, false]]);
-    immutable c = BSM!3([[false, false, true], [false, true, false],
-        [true, false, false]]);
-
-    assert(permutation!3([0, 1, 2]) == a);
-    assert(permutation!3([2, 0, 1]) == b);
-    assert(permutation!3([2, 1, 0]) == c);
 }

@@ -1,12 +1,11 @@
 // Written in the D programming language.
 
-/**
- * A library for simulating the Enigma machines.
- *
- * Copyright: Copyright Kazuya Takahashi 2016.
- * License:   $(LINK2 http://www.boost.org/LICENSE_1_0.txt, Boost License 1.0).
- * Authors:   Kazuya Takahashi
- */
+/*
+Copyright Kazuya Takahashi 2016-2018.
+Distributed under the Boost Software License, Version 1.0.
+(See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+*/
+
 module enigma;
 
 private enum size_t N = 26;
@@ -24,9 +23,9 @@ private template isSomeStringOrDcharRange(T)
 ///
 struct Rotor
 {
-    import boolean_matrix : BSM;
+    import structure : PermutationElement;
 
-    immutable BSM!N perm;
+    immutable PermutationElement!N perm;
     private immutable bool hasNotch = false;
     private immutable size_t[] turnovers;
 
@@ -39,12 +38,10 @@ struct Rotor
      + steps when this rotor steps from B to C and from Z to A.
      + If ringOffset is `2`, it corresponds to "C-03".
      +/
-    this(I...)(in auto ref BSM!N perm, I turnovers, size_t ringOffset) pure
+    this(I...)(in auto ref PermutationElement!N perm, I turnovers, size_t ringOffset) pure
         if (allSatisfy!(isIntegral, I) && I.length <= N)
     in
     {
-        import boolean_matrix : isBijective;
-
         assert(perm.isBijective, "Rotor must be bijective.");
         foreach (t; turnovers)
         {
@@ -56,7 +53,7 @@ struct Rotor
         import std.algorithm.iteration : map, uniq;
         import std.algorithm.sorting : sort;
         import std.array : array;
-        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
+        import structure : cyclicPermutation, cyclicPermutationInv;
 
         this.perm = cyclicPermutationInv!N(ringOffset) * perm * cyclicPermutation!N(ringOffset);
         size_t[] ts = [turnovers];
@@ -96,7 +93,7 @@ do
     import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import boolean_matrix : permutation;
+    import structure : permutation;
 
     static if (C.length)
     {
@@ -121,15 +118,13 @@ do
 ///
 struct EntryWheel
 {
-    import boolean_matrix : BSM;
+    import structure : PermutationElement;
 
-    immutable BSM!N perm;
+    immutable PermutationElement!N perm;
     ///
-    this()(in auto ref BSM!N perm) pure
+    this()(in auto ref PermutationElement!N perm) pure
     in
     {
-        import boolean_matrix : isBijective;
-
         assert(perm.isBijective, "Entry wheel must be bijective.");
     }
     do
@@ -159,7 +154,7 @@ do
     import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import boolean_matrix : permutation, transpose;
+    import structure : permutation;
 
     return EntryWheel(backwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N.transpose);
 }
@@ -167,15 +162,13 @@ do
 ///
 struct Plugboard
 {
-    import boolean_matrix : BSM;
+    import structure : PermutationElement;
 
-    immutable BSM!N perm;
+    immutable PermutationElement!N perm;
     ///
-    this()(in auto ref BSM!N perm) pure
+    this()(in auto ref PermutationElement!N perm) pure
     in
     {
-        import boolean_matrix : isBijective, isSymmetric;
-
         assert(perm.isBijective, "Plugboard must be bijective.");
         assert(perm.isSymmetric, "Plugboard must be symmetric.");
     }
@@ -206,7 +199,7 @@ do
     import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import boolean_matrix : permutation;
+    import structure : permutation;
 
     return Plugboard(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N);
 }
@@ -214,22 +207,20 @@ do
 ///
 struct Reflector
 {
-    import boolean_matrix : BSM;
+    import structure : PermutationElement;
 
-    immutable BSM!N perm;
+    immutable PermutationElement!N perm;
     ///
-    this()(in auto ref BSM!N perm, size_t ringOffset) pure
+    this()(in auto ref PermutationElement!N perm, size_t ringOffset) pure
     in
     {
-        import boolean_matrix : isBijective, isIrreflexive, isSymmetric;
-
         assert(perm.isBijective, "Reflector must be bijective.");
         assert(perm.isIrreflexive, "Reflector must be irreflexive.");
         assert(perm.isSymmetric, "Reflector must be bijective.");
     }
     do
     {
-        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
+        import structure : cyclicPermutation, cyclicPermutationInv;
 
         this.perm = cyclicPermutationInv!N(ringOffset) * perm * cyclicPermutation!N(ringOffset);
     }
@@ -259,7 +250,7 @@ do
     import std.algorithm.iteration : map;
     import std.array : array;
     import std.ascii : toUpper;
-    import boolean_matrix : permutation;
+    import structure : permutation;
 
     return Reflector(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
         ringSetting.toUpper - 'A');
@@ -285,10 +276,10 @@ enum EnigmaType : uint
 ///
 struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 {
-    import boolean_matrix : BSM;
-    private immutable BSM!N composedInputPerm;
+    import structure : PermutationElement;
+    private immutable PermutationElement!N composedInputPerm;
     private immutable Rotor[rotorN] rotors;
-    private immutable BSM!N reflector;
+    private immutable PermutationElement!N reflector;
     private size_t[rotorN + 1] rotationStates;
 
     import std.meta : Repeat;
@@ -404,16 +395,16 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
         }
     }
 
-    import boolean_matrix : BCV;
+    import structure : SetElement;
 
     /+
      + fwdPerm = (Um*Rm*Lm)*(Um-1*Rm-1*Lm-1)*...*(U0*R0*L0)*P
      +         = Um*(Rm*Lm*Um-1)*(Rm-1*Lm-1*Um-2)*...*(R0*L0)*P
      +         = Um*(Rm*RELm)*(Rm-1*RELm-1)*...*(R0*L0)*P
      +/
-    private BCV!N composeForward(in ref BCV!N inputVec, size_t rotorID)
+    private SetElement!N composeForward(in ref SetElement!N inputVec, size_t rotorID)
     {
-        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
+        import structure : cyclicPermutation, cyclicPermutationInv;
 
         immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotator = x > 0 ? cyclicPermutationInv!N(x) : cyclicPermutation!N(-x);
@@ -428,21 +419,21 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
      +         = P^-1*(R0*L0)^-1*...(Rm-1*RELm-1)^-1*(Rm*RELm)^-1*Um^-1
      +         = P^-1*(U0*R0^-1)*...(RELm-1^-1*Rm-1^-1)*(RELm^-1*Rm^-1)*Lm
      +/
-    private BCV!N composeBackward(in ref BCV!N inputVec, size_t rotorID)
+    private SetElement!N composeBackward(in ref SetElement!N inputVec, size_t rotorID)
     {
-        import boolean_matrix : cyclicPermutation, cyclicPermutationInv, transpose;
+        import structure : cyclicPermutation, cyclicPermutationInv;
 
         immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotatorInv = x > 0 ? cyclicPermutation!N(x) : cyclicPermutationInv!N(-x);
         immutable iv = rotorID == rotorN - 1 ? cyclicPermutationInv!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
-        immutable composedVec =  relRotatorInv * (rotors[rotorID].perm.transpose * iv);
+        immutable composedVec = relRotatorInv * (rotors[rotorID].perm.transpose * iv);
         return rotorID == 0 ? composedVec : composeBackward(composedVec, rotorID - 1);
     }
 
     // Unless the reflector is movable, the return value is constant.
     private auto composedReflector() @property
     {
-        import boolean_matrix : cyclicPermutation, cyclicPermutationInv;
+        import structure : cyclicPermutation, cyclicPermutationInv;
 
         return cyclicPermutation!N(rotationStates[$ - 1]) * reflector * cyclicPermutationInv!N(rotationStates[$ - 1]);
     }
@@ -456,15 +447,13 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         step();
 
-        import boolean_matrix : transpose, BCV;
+        import structure : SetElement;
 
-        immutable composedInput = composedInputPerm * BCV!N.e(keyInputID);
+        immutable composedInput = composedInputPerm * SetElement!N(keyInputID);
         immutable reflectorOutput = composedReflector * composeForward(composedInput, 0);
-        immutable composedOutput = composedInputPerm.transpose * composeBackward(reflectorOutput,rotorN - 1) ;
-        import std.algorithm.searching : countUntil;
+        immutable composedOutput = composedInputPerm.transpose * composeBackward(reflectorOutput,rotorN - 1);
 
-        immutable r = composedOutput[].countUntil!"a";
-        return r;
+        return composedOutput.id;
     }
 
     /// Enciphers only an alphabetical character through the current Enigma machine.
