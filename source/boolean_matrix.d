@@ -94,20 +94,16 @@ struct BCV(size_t n) if (n > 0)
 
 unittest
 {
-    immutable a = BSM!3([[true, false, true], [true, true, false],
-        [false, false, true]]);
-    immutable b = BSM!3([[false, true, true], [true, false, false],
-        [false, false, true]]);
-    immutable c = BSM!3([[false, true, true], [true, true, true],
-        [false, false, true]]);
+    immutable a = BSM!3([[true, false, true], [true, true, false], [false, false, true]]);
+    immutable b = BSM!3([[false, true, true], [true, false, false], [false, false, true]]);
+    immutable c = BSM!3([[false, true, true], [true, true, true], [false, false, true]]);
 
     assert(a * b == c);
 }
 
 unittest
 {
-    immutable a = BSM!3([[true, false, true], [true, true, false],
-        [false, false, true]]);
+    immutable a = BSM!3([[true, false, true], [true, true, false], [false, false, true]]);
     immutable b = BCV!3([true, false, false]);
     immutable c = BCV!3([true, true, false]);
 
@@ -140,10 +136,8 @@ auto transpose(M)(in M a) pure if (isInstanceOf!(BSM, M))
 
 unittest
 {
-    immutable a = BSM!3([[false, true, false], [false, true, true],
-        [true, false, false]]);
-    immutable b = BSM!3([[false, false, true], [true, true, false],
-        [false, true, false]]);
+    immutable a = BSM!3([[false, true, false], [false, true, true], [true, false, false]]);
+    immutable b = BSM!3([[false, false, true], [true, true, false], [false, true, false]]);
 
     assert(transpose(a) == b);
 }
@@ -186,14 +180,10 @@ auto isBijective(M)(in M a) pure if (isInstanceOf!(BSM, M))
 
 unittest
 {
-    immutable a = BSM!3([[true, false, false], [false, false, true],
-        [false, true, false]]);
-    immutable b = BSM!3([[false, false, true], [false, false, true],
-        [true, true, false]]);
-    immutable c = BSM!3([[true, false, true], [false, true, false],
-        [false, false, false]]);
-    immutable d = BSM!3([[false, false, false], [false, true, false],
-        [false, false, false]]);
+    immutable a = BSM!3([[true, false, false], [false, false, true], [false, true, false]]);
+    immutable b = BSM!3([[false, false, true], [false, false, true], [true, true, false]]);
+    immutable c = BSM!3([[true, false, true], [false, true, false], [false, false, false]]);
+    immutable d = BSM!3([[false, false, false], [false, true, false], [false, false, false]]);
 
     assert(isBijective(a));
     assert(!isBijective(b));
@@ -216,10 +206,8 @@ auto isIrreflexive(M)(in M a) pure if (isInstanceOf!(BSM, M))
 
 unittest
 {
-    immutable a = BSM!3([[false, false, true], [false, false, true],
-        [true, true, false]]);
-    immutable b = BSM!3([[true, false, true], [false, false, true],
-        [true, false, false]]);
+    immutable a = BSM!3([[false, false, true], [false, false, true], [true, true, false]]);
+    immutable b = BSM!3([[true, false, true], [false, false, true], [true, false, false]]);
 
     assert(isIrreflexive(a));
     assert(!isIrreflexive(b));
@@ -243,10 +231,8 @@ auto isSymmetric(M)(in M a) pure if (isInstanceOf!(BSM, M))
 
 unittest
 {
-    immutable a = BSM!3([[true, false, true], [false, false, true],
-        [true, true, false]]);
-    immutable b = BSM!3([[true, false, true], [false, false, true],
-        [true, false, false]]);
+    immutable a = BSM!3([[true, false, true], [false, false, true], [true, true, false]]);
+    immutable b = BSM!3([[true, false, true], [false, false, true], [true, false, false]]);
 
     assert(isSymmetric(a));
     assert(!isSymmetric(b));

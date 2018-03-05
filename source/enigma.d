@@ -15,10 +15,9 @@ private template isSomeStringOrDcharRange(T)
     import std.range.primitives : isInfinite, isInputRange, ElementType;
     import std.traits : isSomeString;
 
-    enum isSomeStringOrDcharRange = isSomeString!T ||
-        (isInputRange!T && !isInfinite!T && is(ElementType!T : dchar));
+    enum isSomeStringOrDcharRange = isSomeString!T || (isInputRange!T
+                && !isInfinite!T && is(ElementType!T : dchar));
 }
-
 
 ///
 struct Rotor
@@ -31,6 +30,7 @@ struct Rotor
 
     import std.meta : allSatisfy;
     import std.traits : isIntegral;
+
     /++
      + Constructs a rotor.
      + If turnovers are not specified, the rotor has no turnover notches,
@@ -39,7 +39,7 @@ struct Rotor
      + If ringOffset is `2`, it corresponds to "C-03".
      +/
     this(I...)(in auto ref PermutationElement!N perm, I turnovers, size_t ringOffset) pure
-        if (allSatisfy!(isIntegral, I) && I.length <= N)
+            if (allSatisfy!(isIntegral, I) && I.length <= N)
     in
     {
         assert(perm.isBijective, "Rotor must be bijective.");
@@ -64,6 +64,7 @@ struct Rotor
 
 import std.meta : allSatisfy;
 import std.traits : isSomeChar;
+
 /++
  + A convenience function to make a rotor from a forward substitution.
  + If turnovers are not specified, the rotor has no turnover notches,
@@ -72,7 +73,7 @@ import std.traits : isSomeChar;
  + If ringSetting is `'C'`, it corresponds to "C-03".
  +/
 auto rotor(S, C...)(in S forwardSubstitution, C turnovers, dchar ringSetting) pure
-    if (isSomeStringOrDcharRange!S && allSatisfy!(isSomeChar, C) && C.length <= N)
+        if (isSomeStringOrDcharRange!S && allSatisfy!(isSomeChar, C) && C.length <= N)
 in
 {
     import std.algorithm.comparison : isPermutation;
@@ -106,12 +107,12 @@ do
             ts[i] = t.toUpper - 'A';
         }
         return Rotor(forwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
-            ts.expand, ringSetting.toUpper - 'A');
+                ts.expand, ringSetting.toUpper - 'A');
     }
     else
     {
         return Rotor(forwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
-            ringSetting.toUpper - 'A');
+                ringSetting.toUpper - 'A');
     }
 }
 
@@ -156,7 +157,8 @@ do
     import std.ascii : toUpper;
     import structure : permutation;
 
-    return EntryWheel(backwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N.transpose);
+    return EntryWheel(
+            backwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N.transpose);
 }
 
 ///
@@ -231,7 +233,8 @@ struct Reflector
 /++
  + A convenience function to make a reflector from a substitution.
  +/
-auto reflector(S)(in S substitution, dchar ringSetting = 'A') pure if (isSomeStringOrDcharRange!S)
+auto reflector(S)(in S substitution, dchar ringSetting = 'A') pure
+        if (isSomeStringOrDcharRange!S)
 in
 {
     import std.algorithm.comparison : isPermutation;
@@ -241,7 +244,8 @@ in
     import std.range : iota, walkLength, zip;
 
     assert(substitution.walkLength == N, "Bad length.");
-    assert(!N.iota.zip(substitution.map!toUpper.map!"a-'A'").canFind!"a[0]==a[1]", "Self-loop found.");
+    assert(!N.iota.zip(substitution.map!toUpper.map!"a-'A'")
+            .canFind!"a[0]==a[1]", "Self-loop found.");
     assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
     assert(ringSetting.isAlpha, "Bad ring setting.");
 }
@@ -253,7 +257,7 @@ do
     import structure : permutation;
 
     return Reflector(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
-        ringSetting.toUpper - 'A');
+            ringSetting.toUpper - 'A');
 }
 
 ///
@@ -277,6 +281,7 @@ enum EnigmaType : uint
 struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 {
     import structure : PermutationElement;
+
     private immutable PermutationElement!N composedInputPerm;
     private immutable Rotor[rotorN] rotors;
     private immutable PermutationElement!N reflector;
@@ -286,7 +291,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
     ///
     this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
-        in Reflector reflector, in dchar[rotorN] rotorStartPos)
+            in Reflector reflector, in dchar[rotorN] rotorStartPos)
     in
     {
         foreach (dchar c; rotorStartPos)
@@ -361,8 +366,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
     private void step()
     {
-        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1 :
-            (enigmaType & EnigmaType.movableReflector) ? rotorN + 1 : rotorN;
+        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1
+                : (enigmaType & EnigmaType.movableReflector) ? rotorN + 1 : rotorN;
         bool[movableRotorN] stepFlag;
 
         stepFlag[0] = true;
@@ -406,7 +411,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import structure : cyclicPermutation, cyclicPermutationInv;
 
-        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
+        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0]
+            : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotator = x > 0 ? cyclicPermutationInv!N(x) : cyclicPermutation!N(-x);
         immutable composedVec = rotors[rotorID].perm * (relRotator * inputVec);
         return rotorID == rotorN - 1 ? cyclicPermutation!N(rotationStates[rotorID]) * composedVec
@@ -423,9 +429,11 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import structure : cyclicPermutation, cyclicPermutationInv;
 
-        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID] - rotationStates[rotorID - 1];
+        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0]
+            : rotationStates[rotorID] - rotationStates[rotorID - 1];
         immutable relRotatorInv = x > 0 ? cyclicPermutation!N(x) : cyclicPermutationInv!N(-x);
-        immutable iv = rotorID == rotorN - 1 ? cyclicPermutationInv!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
+        immutable iv = rotorID == rotorN - 1
+            ? cyclicPermutationInv!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
         immutable composedVec = relRotatorInv * (rotors[rotorID].perm.transpose * iv);
         return rotorID == 0 ? composedVec : composeBackward(composedVec, rotorID - 1);
     }
@@ -435,7 +443,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import structure : cyclicPermutation, cyclicPermutationInv;
 
-        return cyclicPermutation!N(rotationStates[$ - 1]) * reflector * cyclicPermutationInv!N(rotationStates[$ - 1]);
+        return cyclicPermutation!N(rotationStates[$ - 1]) * reflector * cyclicPermutationInv!N(
+                rotationStates[$ - 1]);
     }
 
     private auto process(size_t keyInputID)
@@ -451,7 +460,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
         immutable composedInput = composedInputPerm * SetElement!N(keyInputID);
         immutable reflectorOutput = composedReflector * composeForward(composedInput, 0);
-        immutable composedOutput = composedInputPerm.transpose * composeBackward(reflectorOutput,rotorN - 1);
+        immutable composedOutput = composedInputPerm.transpose * composeBackward(
+                reflectorOutput, rotorN - 1);
 
         return composedOutput.id;
     }
@@ -461,7 +471,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import std.ascii : isAlpha, toUpper;
 
-        return keyInput.isAlpha ? cast(dchar)process(keyInput.toUpper - 'A') + 'A' : keyInput;
+        return keyInput.isAlpha ? cast(dchar) process(keyInput.toUpper - 'A') + 'A' : keyInput;
     }
 }
 
@@ -678,85 +688,99 @@ auto rotorVIIIT(dchar ringSetting = 'A') pure
 /// ditto
 auto rotorIKD(dchar ringSetting = 'A') pure
 {
-    return rotor("VEZIOJCXKYDUNTWAPLQGBHSFMR", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
+    return rotor("VEZIOJCXKYDUNTWAPLQGBHSFMR", 'S', 'U', 'Y', 'A', 'E', 'H',
+            'L', 'N', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIKD(dchar ringSetting = 'A') pure
 {
-    return rotor("HGRBSJZETDLVPMQYCXAOKINFUW", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
+    return rotor("HGRBSJZETDLVPMQYCXAOKINFUW", 'S', 'U', 'Y', 'A', 'E', 'H',
+            'L', 'N', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIIKD(dchar ringSetting = 'A') pure
 {
-    return rotor("NWLHXGRBYOJSAZDVTPKFQMEUIC", 'S', 'U', 'Y', 'A', 'E', 'H', 'L', 'N', 'Q', ringSetting);
+    return rotor("NWLHXGRBYOJSAZDVTPKFQMEUIC", 'S', 'U', 'Y', 'A', 'E', 'H',
+            'L', 'N', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIA865(dchar ringSetting = 'A') pure
 {
-    return rotor("LPGSZMHAEOQKVXRFYBUTNICJDW", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+    return rotor("LPGSZMHAEOQKVXRFYBUTNICJDW", 'S', 'U', 'V', 'W', 'Z', 'A',
+            'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIA865(dchar ringSetting = 'A') pure
 {
-    return rotor("SLVGBTFXJQOHEWIRZYAMKPCNDU", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+    return rotor("SLVGBTFXJQOHEWIRZYAMKPCNDU", 'S', 'T', 'V', 'Y', 'Z', 'A',
+            'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIIA865(dchar ringSetting = 'A') pure
 {
-    return rotor("CJGDPSHKTURAWZXFMYNQOBVLIE", 'U', 'W', 'X', 'A', 'E', 'F', 'H', 'K', 'M', 'N', 'R', ringSetting);
+    return rotor("CJGDPSHKTURAWZXFMYNQOBVLIE", 'U', 'W', 'X', 'A', 'E', 'F',
+            'H', 'K', 'M', 'N', 'R', ringSetting);
 }
 
 /// ditto
 auto rotorIG260(dchar ringSetting = 'A') pure
 {
-    return rotor("RCSPBLKQAUMHWYTIFZVGOJNEXD", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+    return rotor("RCSPBLKQAUMHWYTIFZVGOJNEXD", 'S', 'U', 'V', 'W', 'Z', 'A',
+            'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIG260(dchar ringSetting = 'A') pure
 {
-    return rotor("WCMIBVPJXAROSGNDLZKEYHUFQT", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+    return rotor("WCMIBVPJXAROSGNDLZKEYHUFQT", 'S', 'T', 'V', 'Y', 'Z', 'A',
+            'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIIG260(dchar ringSetting = 'A') pure
 {
-    return rotor("FVDHZELSQMAXOKYIWPGCBUJTNR", 'U', 'W', 'X', 'A', 'E', 'F', 'H', 'K', 'M', 'N', 'R', ringSetting);
+    return rotor("FVDHZELSQMAXOKYIWPGCBUJTNR", 'U', 'W', 'X', 'A', 'E', 'F',
+            'H', 'K', 'M', 'N', 'R', ringSetting);
 }
 
 /// ditto
 auto rotorIG312(dchar ringSetting = 'A') pure
 {
-    return rotor("DMTWSILRUYQNKFEJCAZBPGXOHV", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+    return rotor("DMTWSILRUYQNKFEJCAZBPGXOHV", 'S', 'U', 'V', 'W', 'Z', 'A',
+            'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIG312(dchar ringSetting = 'A') pure
 {
-    return rotor("HQZGPJTMOBLNCIFDYAWVEUSRKX", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+    return rotor("HQZGPJTMOBLNCIFDYAWVEUSRKX", 'S', 'T', 'V', 'Y', 'Z', 'A',
+            'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIIG312(dchar ringSetting = 'A') pure
 {
-    return rotor("UQNTLSZFMREHDPXKIBVYGJCWOA", 'U', 'W', 'X', 'A', 'E', 'F', 'H', 'K', 'M', 'N', 'R', ringSetting);
+    return rotor("UQNTLSZFMREHDPXKIBVYGJCWOA", 'U', 'W', 'X', 'A', 'E', 'F',
+            'H', 'K', 'M', 'N', 'R', ringSetting);
 }
 
 /// ditto
 auto rotorIG111(dchar ringSetting = 'A') pure
 {
-    return rotor("WLRHBQUNDKJCZSEXOTMAGYFPVI", 'S', 'U', 'V', 'W', 'Z', 'A', 'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
+    return rotor("WLRHBQUNDKJCZSEXOTMAGYFPVI", 'S', 'U', 'V', 'W', 'Z', 'A',
+            'B', 'C', 'E', 'F', 'G', 'I', 'K', 'L', 'O', 'P', 'Q', ringSetting);
 }
 
 /// ditto
 auto rotorIIG111(dchar ringSetting = 'A') pure
 {
-    return rotor("TFJQAZWMHLCUIXRDYGOEVBNSKP", 'S', 'T', 'V', 'Y', 'Z', 'A', 'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
+    return rotor("TFJQAZWMHLCUIXRDYGOEVBNSKP", 'S', 'T', 'V', 'Y', 'Z', 'A',
+            'C', 'D', 'F', 'G', 'H', 'K', 'M', 'N', 'Q', ringSetting);
 }
 
 /// ditto
@@ -884,7 +908,8 @@ alias reflectorG111 = reflectorD;
 // Double stepping test (http://www.cryptomuseum.com/crypto/enigma/working.htm)
 unittest
 {
-    auto m3 = EnigmaM3(plugboardDoNothing, entryWheelABC, rotorI, rotorII, rotorIII, reflectorB, "ODA");
+    auto m3 = EnigmaM3(plugboardDoNothing, entryWheelABC, rotorI, rotorII,
+            rotorIII, reflectorB, "ODA");
 
     assert(m3.rotationStates == [14, 3, 0, 0]);
 
@@ -932,9 +957,9 @@ unittest
     assert(ed('A') == 'Z');
     assert(ed.rotationStates == [0, 5, 14, 1]);
 
-
     // The K's rotor positions are same as the D's.
-    auto sk = SwissK(entryWheelQWE, rotorIK('Z'), rotorIIK('Y'), rotorIIIK, reflectorK('E'), "UDN" /*!*/ , 'X');
+    auto sk = SwissK(entryWheelQWE, rotorIK('Z'), rotorIIK('Y'), rotorIIIK,
+            reflectorK('E'), "UDN" /*!*/ , 'X');
 
     assert(sk.rotationStates == [20, 3, 13, 23]);
 
@@ -968,8 +993,8 @@ unittest
     assert(nor1('A') == 'F');
     assert(nor1('A') == 'H');
 
-
-    auto nor2 = Norway(plugboard("ABCDEGFHIJKLMNOPQRSTUVWXYZ"), entryWheelABC, rotorINor, rotorIVNor, rotorVNor, reflectorNor, "PDL");
+    auto nor2 = Norway(plugboard("ABCDEGFHIJKLMNOPQRSTUVWXYZ"), entryWheelABC,
+            rotorINor, rotorIVNor, rotorVNor, reflectorNor, "PDL");
 
     assert(nor2('A') == 'P');
     assert(nor2('A') == 'G');
@@ -1002,7 +1027,6 @@ unittest
     assert(et1('A') == 'H');
     assert(et1('A') == 'M');
 
-
     auto et2 = EnigmaT(entryWheelKZR, rotorVIT, rotorVT, rotorIVT, reflectorT, "AFR", 'A');
 
     assert(et2('A') == 'X');
@@ -1012,8 +1036,8 @@ unittest
     assert(et2('A') == 'C');
     assert(et2('A') == 'B');
 
-
-    auto et3 = EnigmaT(entryWheelKZR, rotorVIIT, rotorVIIIT('Z'), rotorIVT, reflectorT('C'), "AFR", 'V');
+    auto et3 = EnigmaT(entryWheelKZR, rotorVIIT, rotorVIIIT('Z'), rotorIVT,
+            reflectorT('C'), "AFR", 'V');
 
     assert(et3('A') == 'D');
     assert(et3('A') == 'S');
@@ -1038,7 +1062,8 @@ unittest
 // Normal stepping and movable reflector test
 unittest
 {
-    auto ea865 = EnigmaA28(entryWheelQWE, rotorIIIA865, rotorIIA865, rotorIA865, reflectorA865, "CAA", 'A');
+    auto ea865 = EnigmaA28(entryWheelQWE, rotorIIIA865, rotorIIA865,
+            rotorIA865, reflectorA865, "CAA", 'A');
 
     assert(ea865.rotationStates == [2, 0, 0, 0]);
 
@@ -1072,7 +1097,8 @@ unittest
 
 unittest
 {
-    auto eg260 = EnigmaG(entryWheelQWE, rotorIG260, rotorIIG260, rotorIIIG260, reflectorG260, "AAA", 'A');
+    auto eg260 = EnigmaG(entryWheelQWE, rotorIG260, rotorIIG260, rotorIIIG260,
+            reflectorG260, "AAA", 'A');
 
     assert(eg260.rotationStates == [0, 0, 0, 0]);
 
@@ -1106,7 +1132,8 @@ unittest
 
 unittest
 {
-    auto eg312 = EnigmaG(entryWheelQWE, rotorIG312, rotorIIG312('B'), rotorIIIG312, reflectorG312('Y'), "CZB", 'D');
+    auto eg312 = EnigmaG(entryWheelQWE, rotorIG312, rotorIIG312('B'),
+            rotorIIIG312, reflectorG312('Y'), "CZB", 'D');
 
     assert(eg312.rotationStates == [2, 25, 1, 3]);
 
@@ -1134,7 +1161,8 @@ unittest
 
 unittest
 {
-    auto eg111 = EnigmaG(entryWheelQWE, rotorIG111, rotorVG111, rotorIIG111, reflectorG111, "AAA", 'A');
+    auto eg111 = EnigmaG(entryWheelQWE, rotorIG111, rotorVG111, rotorIIG111,
+            reflectorG111, "AAA", 'A');
 
     assert(eg111.rotationStates == [0, 0, 0, 0]);
 
@@ -1176,7 +1204,8 @@ unittest
     immutable rot2 = rotor("AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E', 'B');
     immutable rot3 = rotor("BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V', 'A');
 
-    auto e3 = Enigma!(3, EnigmaType.plugboard)(pbCI, enWh, rot1, rot2, rot3, refB, ['X', 'Q', 'E']);
+    auto e3 = Enigma!(3, EnigmaType.plugboard)(pbCI, enWh, rot1, rot2, rot3,
+            refB, ['X', 'Q', 'E']);
     assert(e3('A') == 'K');
     assert(e3('a') == 'T'); // A lowercase is automatically converted to an uppercase.
     assert(e3('5') == '5'); // A non-alphabetical character does not changes
@@ -1204,15 +1233,14 @@ unittest
 unittest
 {
     // These have the equivalent settings.
-    auto m3 = EnigmaM3(entryWheelABC, rotorIII, rotorII, rotorI, reflectorB /*!*/ ,
-        "FOO");
-    auto m4 = EnigmaM4(entryWheelABC, rotorIII, rotorII, rotorI,
-        rotorBeta('A') /*!*/ , reflectorBThin /*!*/ , "FOOA" /*!*/ ); // FOO*A*
+    auto m3 = EnigmaM3(entryWheelABC, rotorIII, rotorII, rotorI, reflectorB /*!*/ , "FOO");
+    auto m4 = EnigmaM4(entryWheelABC, rotorIII, rotorII, rotorI, rotorBeta('A') /*!*/ ,
+            reflectorBThin /*!*/ , "FOOA" /*!*/ ); // FOO*A*
 
     // If each machine has just one movable rotor...
     auto e1 = Enigma!1(entryWheelABC, rotorI, reflectorC /*!*/ , "X");
-    auto e2fixed = Enigma!(2, EnigmaType.fixedFinalRotor  /*!*/ )(entryWheelABC, rotorI,
-        rotorGamma('A') /*!*/ , reflectorCThin /*!*/ , "XA" /*!*/ ); // X*A*
+    auto e2fixed = Enigma!(2, EnigmaType.fixedFinalRotor /*!*/ )(entryWheelABC,
+            rotorI, rotorGamma('A') /*!*/ , reflectorCThin /*!*/ , "XA" /*!*/ ); // X*A*
 
     foreach (dchar c; "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     {
@@ -1229,10 +1257,10 @@ unittest
     import std.array : appender;
 
     // These have the equivalent settings.
-    auto m4 = EnigmaM4(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), entryWheelABC, rotorIII('Y'),
-        rotorII('V'), rotorI('R'), rotorBeta, reflectorBThin, "UEQA");
-    auto m3 = EnigmaM3(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), entryWheelABC, rotorIII('Y'),
-        rotorII('V'), rotorI('R'), reflectorB, "UEQ");
+    auto m4 = EnigmaM4(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), entryWheelABC,
+            rotorIII('Y'), rotorII('V'), rotorI('R'), rotorBeta, reflectorBThin, "UEQA");
+    auto m3 = EnigmaM3(plugboard("SBCDEGFHIJKLMNOPQRATUVWXYZ"), entryWheelABC,
+            rotorIII('Y'), rotorII('V'), rotorI('R'), reflectorB, "UEQ");
 
     auto enciphered = appender!dstring;
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ".map!m4.each!(c => enciphered.put(c));
