@@ -85,7 +85,7 @@ struct PermutationElement(size_t degree) if (degree > 0)
     }
 
     // Delegates "isXXX" properties to boolean_matrix.
-    private @property opDispatch(string s)() const pure
+    @property opDispatch(string s)() const pure
             if (s.length > 2 && s[0 .. 2] == "is")
     {
         import boolean_matrix;
