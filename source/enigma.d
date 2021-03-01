@@ -855,6 +855,7 @@ auto reflectorA() pure
     return reflector("EJMZALYXVBWFCRQUONTSPIKHGD");
 }
 
+/// ditto
 auto reflectorB() pure
 {
     return reflector("YRUHQSLDPXNGOKMIEBFZCWVJAT");
