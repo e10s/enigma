@@ -287,11 +287,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     private immutable PermutationElement!N reflector;
     private size_t[rotorN + 1] rotationStates;
 
-    import std.meta : Repeat;
-
-    ///
-    this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
-            in Reflector reflector, in dchar[rotorN] rotorStartPos)
+    private this(in PermutationElement!N composedInputPerm, in Rotor[rotorN] rotors,
+        in PermutationElement!N reflector, in dchar[rotorN] rotorStartPos)
     in
     {
         foreach (dchar c; rotorStartPos)
@@ -303,16 +300,25 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     }
     do
     {
+        this.composedInputPerm = cast(immutable) composedInputPerm;
+        this.rotors[] = cast(immutable) rotors[];
+        this.reflector = cast(immutable) reflector;
+
         foreach (i, ref e; rotorStartPos)
         {
             import std.ascii : toUpper;
 
             rotationStates[i] = e.toUpper - 'A';
         }
+     }
 
-        this.composedInputPerm = cast(immutable) entryWheel.perm;
-        this.rotors[] = cast(immutable)[rotors][];
-        this.reflector = cast(immutable) reflector.perm;
+    import std.meta : Repeat;
+
+    ///
+    this(in EntryWheel entryWheel, in Repeat!(rotorN, Rotor) rotors,
+            in Reflector reflector, in dchar[rotorN] rotorStartPos)
+    {
+        this(entryWheel.perm, [rotors], reflector.perm, rotorStartPos);
     }
 
     ///
@@ -340,8 +346,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
             Rotor) rotors, in Reflector reflector, in dchar[rotorN] rotorStartPos)
             if (enigmaType & EnigmaType.plugboard)
     {
-        this(entryWheel, rotors, reflector, rotorStartPos);
-        this.composedInputPerm = cast(immutable)(entryWheel * plugboard);
+        this(entryWheel * plugboard, [rotors], reflector.perm, rotorStartPos);
     }
 
     ///
