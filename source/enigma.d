@@ -82,7 +82,8 @@ in
     import std.range : iota, walkLength;
 
     assert(forwardSubstitution.walkLength == N, "Bad length.");
-    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+    assert(N.iota.isPermutation(forwardSubstitution.map!toUpper
+            .map!"a-'A'"), "Bad permutation.");
     foreach (dchar t; turnovers)
     {
         assert(t.isAlpha, "Bad turnover setting.");
@@ -106,13 +107,17 @@ do
         {
             ts[i] = t.toUpper - 'A';
         }
-        return Rotor(forwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
-                ts.expand, ringSetting.toUpper - 'A');
+        return Rotor(forwardSubstitution.map!toUpper
+                .map!"a-size_t('A')"
+                .array
+                .permutation!N, ts.expand, ringSetting.toUpper - 'A');
     }
     else
     {
-        return Rotor(forwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
-                ringSetting.toUpper - 'A');
+        return Rotor(forwardSubstitution.map!toUpper
+                .map!"a-size_t('A')"
+                .array
+                .permutation!N, ringSetting.toUpper - 'A');
     }
 }
 
@@ -148,7 +153,8 @@ in
     import std.range : iota, walkLength;
 
     assert(backwardSubstitution.walkLength == N, "Bad length.");
-    assert(N.iota.isPermutation(backwardSubstitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+    assert(N.iota.isPermutation(backwardSubstitution.map!toUpper
+            .map!"a-'A'"), "Bad permutation.");
 }
 do
 {
@@ -157,8 +163,11 @@ do
     import std.ascii : toUpper;
     import structure : permutation;
 
-    return EntryWheel(
-            backwardSubstitution.map!toUpper.map!"a-size_t('A')".array.permutation!N.transpose);
+    return EntryWheel(backwardSubstitution.map!toUpper
+            .map!"a-size_t('A')"
+            .array
+            .permutation!N
+            .transpose);
 }
 
 ///
@@ -194,7 +203,8 @@ in
     import std.range : iota, walkLength;
 
     assert(substitution.walkLength == N, "Bad length.");
-    assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+    assert(N.iota.isPermutation(substitution.map!toUpper
+            .map!"a-'A'"), "Bad permutation.");
 }
 do
 {
@@ -203,7 +213,10 @@ do
     import std.ascii : toUpper;
     import structure : permutation;
 
-    return Plugboard(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N);
+    return Plugboard(substitution.map!toUpper
+            .map!"a-size_t('A')"
+            .array
+            .permutation!N);
 }
 
 ///
@@ -244,9 +257,10 @@ in
     import std.range : iota, walkLength, zip;
 
     assert(substitution.walkLength == N, "Bad length.");
-    assert(!N.iota.zip(substitution.map!toUpper.map!"a-'A'")
-            .canFind!"a[0]==a[1]", "Self-loop found.");
-    assert(N.iota.isPermutation(substitution.map!toUpper.map!"a-'A'"), "Bad permutation.");
+    assert(!N.iota.zip(substitution.map!toUpper
+            .map!"a-'A'").canFind!"a[0]==a[1]", "Self-loop found.");
+    assert(N.iota.isPermutation(substitution.map!toUpper
+            .map!"a-'A'"), "Bad permutation.");
     assert(ringSetting.isAlpha, "Bad ring setting.");
 }
 do
@@ -256,8 +270,10 @@ do
     import std.ascii : toUpper;
     import structure : permutation;
 
-    return Reflector(substitution.map!toUpper.map!"a-size_t('A')".array.permutation!N,
-            ringSetting.toUpper - 'A');
+    return Reflector(substitution.map!toUpper
+            .map!"a-size_t('A')"
+            .array
+            .permutation!N, ringSetting.toUpper - 'A');
 }
 
 ///
@@ -288,7 +304,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     private size_t[rotorN + 1] rotationStates;
 
     private this(in PermutationElement!N composedInputPerm, in Rotor[rotorN] rotors,
-        in PermutationElement!N reflector, in dchar[rotorN] rotorStartPos)
+            in PermutationElement!N reflector, in dchar[rotorN] rotorStartPos)
     in
     {
         foreach (dchar c; rotorStartPos)
@@ -310,7 +326,7 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
             rotationStates[i] = e.toUpper - 'A';
         }
-     }
+    }
 
     import std.meta : Repeat;
 
@@ -371,8 +387,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
 
     private void step()
     {
-        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1
-                : (enigmaType & EnigmaType.movableReflector) ? rotorN + 1 : rotorN;
+        enum movableRotorN = (enigmaType & EnigmaType.fixedFinalRotor) ? rotorN - 1 : (
+                    enigmaType & EnigmaType.movableReflector) ? rotorN + 1 : rotorN;
         bool[movableRotorN] stepFlag;
 
         stepFlag[0] = true;
@@ -416,8 +432,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import structure : cyclicPermutation, cyclicPermutationInv;
 
-        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0]
-            : rotationStates[rotorID] - rotationStates[rotorID - 1];
+        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID]
+            - rotationStates[rotorID - 1];
         immutable relRotator = x > 0 ? cyclicPermutationInv!N(x) : cyclicPermutation!N(-x);
         immutable composedVec = rotors[rotorID].perm * (relRotator * inputVec);
         return rotorID == rotorN - 1 ? cyclicPermutation!N(rotationStates[rotorID]) * composedVec
@@ -434,8 +450,8 @@ struct Enigma(size_t rotorN, EnigmaType enigmaType = EnigmaType.none)
     {
         import structure : cyclicPermutation, cyclicPermutationInv;
 
-        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0]
-            : rotationStates[rotorID] - rotationStates[rotorID - 1];
+        immutable ptrdiff_t x = rotorID == 0 ? rotationStates[0] : rotationStates[rotorID]
+            - rotationStates[rotorID - 1];
         immutable relRotatorInv = x > 0 ? cyclicPermutation!N(x) : cyclicPermutationInv!N(-x);
         immutable iv = rotorID == rotorN - 1
             ? cyclicPermutationInv!N(rotationStates[rotorN - 1]) * inputVec : inputVec;
@@ -1268,7 +1284,8 @@ unittest
             rotorIII('Y'), rotorII('V'), rotorI('R'), reflectorB, "UEQ");
 
     auto enciphered = appender!dstring;
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".map!m4.each!(c => enciphered.put(c));
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ".map!m4
+        .each!(c => enciphered.put(c));
     assert(enciphered.data == "RIIGSIBEBIZKCTZSSDGQMLSVUX");
 
     auto deciphered = enciphered.data.map!m3;

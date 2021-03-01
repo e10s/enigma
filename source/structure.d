@@ -85,8 +85,7 @@ struct PermutationElement(size_t degree) if (degree > 0)
     }
 
     // Delegates "isXXX" properties to boolean_matrix.
-    @property opDispatch(string s)() const pure
-            if (s.length > 2 && s[0 .. 2] == "is")
+    @property opDispatch(string s)() const pure if (s.length > 2 && s[0 .. 2] == "is")
     {
         import boolean_matrix;
 
@@ -98,12 +97,15 @@ unittest
 {
     import boolean_matrix : BSM;
 
-    immutable a = PermutationElement!3(BSM!3([[true, false, true], [true,
-            true, false], [false, false, true]]));
-    immutable b = PermutationElement!3(BSM!3([[false, true, true], [true,
-            false, false], [false, false, true]]));
-    immutable c = PermutationElement!3(BSM!3([[false, true, true], [true,
-            true, true], [false, false, true]]));
+    immutable a = PermutationElement!3(BSM!3([
+                [true, false, true], [true, true, false], [false, false, true]
+            ]));
+    immutable b = PermutationElement!3(BSM!3([
+                [false, true, true], [true, false, false], [false, false, true]
+            ]));
+    immutable c = PermutationElement!3(BSM!3([
+                [false, true, true], [true, true, true], [false, false, true]
+            ]));
 
     assert(a * b == c);
 }
@@ -112,8 +114,9 @@ unittest
 {
     import boolean_matrix : BCV, BSM;
 
-    immutable a = PermutationElement!3(BSM!3([[true, false, true], [true,
-            true, false], [false, false, true]]));
+    immutable a = PermutationElement!3(BSM!3([
+                [true, false, true], [true, true, false], [false, false, true]
+            ]));
     immutable b = SetElement!3(BCV!3([true, false, false]));
     immutable c = SetElement!3(BCV!3([true, true, false]));
 
@@ -143,10 +146,12 @@ unittest
 {
     import boolean_matrix : BSM;
 
-    immutable a = PermutationElement!3(BSM!3([[true, false, false], [false,
-            true, false], [false, false, true]]));
-    immutable b = PermutationElement!3(BSM!3([[false, true, false], [false,
-            false, true], [true, false, false]]));
+    immutable a = PermutationElement!3(BSM!3([
+                [true, false, false], [false, true, false], [false, false, true]
+            ]));
+    immutable b = PermutationElement!3(BSM!3([
+                [false, true, false], [false, false, true], [true, false, false]
+            ]));
 
     assert(cyclicPermutation!3(0) == a);
     assert(cyclicPermutation!3(21) == a);
@@ -177,10 +182,12 @@ unittest
 {
     import boolean_matrix : BSM;
 
-    immutable a = PermutationElement!3(BSM!3([[true, false, false], [false,
-            true, false], [false, false, true]]));
-    immutable b = PermutationElement!3(BSM!3([[false, false, true], [true,
-            false, false], [false, true, false]]));
+    immutable a = PermutationElement!3(BSM!3([
+                [true, false, false], [false, true, false], [false, false, true]
+            ]));
+    immutable b = PermutationElement!3(BSM!3([
+                [false, false, true], [true, false, false], [false, true, false]
+            ]));
 
     assert(cyclicPermutationInv!3(0) == a);
     assert(cyclicPermutationInv!3(21) == a);
@@ -220,12 +227,15 @@ unittest
 {
     import boolean_matrix : BSM;
 
-    immutable a = PermutationElement!3(BSM!3([[true, false, false], [false,
-            true, false], [false, false, true]]));
-    immutable b = PermutationElement!3(BSM!3([[false, true, false], [false,
-            false, true], [true, false, false]]));
-    immutable c = PermutationElement!3(BSM!3([[false, false, true], [false,
-            true, false], [true, false, false]]));
+    immutable a = PermutationElement!3(BSM!3([
+                [true, false, false], [false, true, false], [false, false, true]
+            ]));
+    immutable b = PermutationElement!3(BSM!3([
+                [false, true, false], [false, false, true], [true, false, false]
+            ]));
+    immutable c = PermutationElement!3(BSM!3([
+                [false, false, true], [false, true, false], [true, false, false]
+            ]));
 
     assert(permutation!3([0, 1, 2]) == a);
     assert(permutation!3([2, 0, 1]) == b);
